@@ -161,7 +161,7 @@ function SchemesPage() {
       {/* Empty State */}
       {!loading && !error && filteredSchemes.length === 0 && (
         <EmptyState
-          icon={ExclamationTriangleIcon}
+          icon={<ExclamationTriangleIcon className="h-10 w-10" />}
           title="No schemes found"
           description="Try adjusting your filters or search query."
         />

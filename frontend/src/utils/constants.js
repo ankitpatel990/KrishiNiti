@@ -135,6 +135,8 @@ export const STORAGE_KEYS = {
   VOICE_SETTINGS: "farmhelp_voice_settings",
   VOICE_TUTORIAL_SHOWN: "farmhelp_voice_tutorial_shown",
   VOICE_CHAT_HISTORY: "farmhelp_voice_chat_history",
+  AUTH_USER: "farmhelp_auth_user",
+  AUTH_TOKEN: "farmhelp_auth_token",
 };
 
 // ---------------------------------------------------------------------------
@@ -143,6 +145,9 @@ export const STORAGE_KEYS = {
 
 export const ROUTES = {
   HOME: "/",
+  LOGIN: "/login",
+  SIGNUP: "/signup",
+  PROFILE: "/profile",
   DISEASE_DETECTION: "/disease",
   WEATHER: "/weather",
   APMC: "/apmc",

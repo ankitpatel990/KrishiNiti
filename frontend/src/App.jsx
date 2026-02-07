@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { AppProvider } from "@context/AppContext";
 import { VoiceProvider } from "@context/VoiceContext";
 import { LocationProvider } from "@context/LocationContext";
+import { AuthProvider } from "@context/AuthContext";
 import { Layout, PageTransition, LoadingSpinner, ErrorBoundary } from "@components/common";
 import useApp from "@hooks/useApp";
 
@@ -12,6 +13,9 @@ import useApp from "@hooks/useApp";
 // ---------------------------------------------------------------------------
 
 const HomePage = lazy(() => import("@pages/HomePage"));
+const LoginPage = lazy(() => import("@pages/LoginPage"));
+const SignupPage = lazy(() => import("@pages/SignupPage"));
+const FarmerProfilePage = lazy(() => import("@pages/FarmerProfilePage"));
 const DiseaseDetectionPage = lazy(() => import("@pages/DiseaseDetectionPage"));
 const WeatherPage = lazy(() => import("@pages/WeatherPage"));
 const APMCPricePage = lazy(() => import("@pages/APMCPricePage"));
@@ -49,6 +53,9 @@ function AppShell() {
             <PageTransition key={location.pathname}>
               <Routes location={location}>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/profile" element={<FarmerProfilePage />} />
                 <Route path="/disease" element={<DiseaseDetectionPage />} />
                 <Route path="/weather" element={<WeatherPage />} />
                 <Route path="/apmc" element={<APMCPricePage />} />
@@ -73,11 +80,13 @@ function AppShell() {
 function App() {
   return (
     <AppProvider>
-      <LocationProvider>
-        <VoiceProvider>
-          <AppShell />
-        </VoiceProvider>
-      </LocationProvider>
+      <AuthProvider>
+        <LocationProvider>
+          <VoiceProvider>
+            <AppShell />
+          </VoiceProvider>
+        </LocationProvider>
+      </AuthProvider>
     </AppProvider>
   );
 }

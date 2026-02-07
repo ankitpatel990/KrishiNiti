@@ -1,13 +1,13 @@
 /**
  * Header - Top navigation bar with logo, navigation links,
- * language toggle, and dark mode toggle.
+ * language toggle, dark mode toggle, and user profile.
  *
  * Features a subtle gradient background and responsive
  * hamburger menu on mobile.
  */
 
 import { useState, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import {
   Bars3Icon,
@@ -15,8 +15,11 @@ import {
   LanguageIcon,
   SunIcon,
   MoonIcon,
+  UserCircleIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { ROUTES, LANGUAGES, APP_NAME } from "@utils/constants";
+import { useAuth } from "@context/AuthContext";
 
 const NAV_ITEMS = [
   { label: "Home", path: ROUTES.HOME },
@@ -29,6 +32,8 @@ const NAV_ITEMS = [
 function Header({ language, onToggleLanguage, theme, onToggleTheme }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const toggleMobile = useCallback(() => {
     setMobileMenuOpen((prev) => !prev);
@@ -37,6 +42,12 @@ function Header({ language, onToggleLanguage, theme, onToggleTheme }) {
   const closeMobile = useCallback(() => {
     setMobileMenuOpen(false);
   }, []);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate(ROUTES.HOME);
+    closeMobile();
+  }, [logout, navigate, closeMobile]);
 
   const languageLabel = language === LANGUAGES.HI ? "EN" : "HI";
   const isDark = theme === "dark";
@@ -122,6 +133,37 @@ function Header({ language, onToggleLanguage, theme, onToggleTheme }) {
               </button>
             )}
 
+            {/* User Profile / Login */}
+            <div className="hidden md:flex items-center gap-1.5">
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    to={ROUTES.PROFILE}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  >
+                    <UserCircleIcon className="h-5 w-5" aria-hidden="true" />
+                    <span className="max-w-[100px] truncate">{user.name?.split(" ")[0]}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    aria-label="Logout"
+                    title="Logout"
+                  >
+                    <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to={ROUTES.LOGIN}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
+
             {/* Mobile menu button */}
             <button
               type="button"
@@ -168,6 +210,43 @@ function Header({ language, onToggleLanguage, theme, onToggleTheme }) {
                 </Link>
               );
             })}
+
+            {/* Mobile Auth Links */}
+            <div className="border-t border-neutral-200 mt-2 pt-2">
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    to={ROUTES.PROFILE}
+                    onClick={closeMobile}
+                    className={[
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      location.pathname === ROUTES.PROFILE
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-neutral-600 hover:bg-neutral-100",
+                    ].join(" ")}
+                  >
+                    <UserCircleIcon className="h-5 w-5" />
+                    My Profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
+                  >
+                    <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to={ROUTES.LOGIN}
+                  onClick={closeMobile}
+                  className="block px-3 py-2 rounded-lg text-sm font-medium bg-primary-600 text-white text-center hover:bg-primary-700 transition-colors"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
         </nav>
       )}

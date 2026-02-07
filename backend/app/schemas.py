@@ -467,3 +467,195 @@ class SchemeFilterRequest(BaseModel):
                 "is_active": True
             }
         }
+
+
+# ---------------------------------------------------------------------------
+# Authentication Schemas
+# ---------------------------------------------------------------------------
+
+class UserBase(BaseModel):
+    """Base schema for user data"""
+    mobile_number: str = Field(
+        ..., 
+        min_length=10, 
+        max_length=15, 
+        pattern=r"^\d{10,15}$",
+        description="Mobile number (10-15 digits)"
+    )
+    name: str = Field(..., min_length=2, max_length=100, description="User's full name")
+    state: str = Field(..., min_length=1, max_length=100, description="State name")
+    district: str = Field(..., min_length=1, max_length=100, description="District name")
+    taluka: str = Field(..., min_length=1, max_length=100, description="Taluka name")
+
+
+class UserSignupRequest(UserBase):
+    """Schema for user signup request"""
+    
+    @validator('name')
+    def validate_name(cls, v):
+        """Validate name is not empty after stripping"""
+        if not v.strip():
+            raise ValueError('Name cannot be empty')
+        return v.strip()
+    
+    @validator('mobile_number')
+    def validate_mobile(cls, v):
+        """Validate mobile number contains only digits"""
+        if not v.isdigit():
+            raise ValueError('Mobile number must contain only digits')
+        return v
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "mobile_number": "9876543210",
+                "name": "Josh Patel",
+                "state": "Gujarat",
+                "district": "Rajkot",
+                "taluka": "Gondal"
+            }
+        }
+
+
+class UserLoginRequest(BaseModel):
+    """Schema for user login request"""
+    mobile_number: str = Field(
+        ..., 
+        min_length=10, 
+        max_length=15,
+        pattern=r"^\d{10,15}$",
+        description="Mobile number (10-15 digits)"
+    )
+    otp: str = Field(
+        ..., 
+        min_length=4, 
+        max_length=6,
+        pattern=r"^\d{4,6}$",
+        description="OTP code (4-6 digits)"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "mobile_number": "9876543210",
+                "otp": "1234"
+            }
+        }
+
+
+class OTPRequestSchema(BaseModel):
+    """Schema for OTP request"""
+    mobile_number: str = Field(
+        ..., 
+        min_length=10, 
+        max_length=15,
+        pattern=r"^\d{10,15}$",
+        description="Mobile number (10-15 digits)"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "mobile_number": "9876543210"
+            }
+        }
+
+
+class UserResponse(BaseModel):
+    """Schema for user response"""
+    id: int = Field(..., description="User ID")
+    mobile_number: str = Field(..., description="Mobile number")
+    name: str = Field(..., description="User's full name")
+    state: str = Field(..., description="State name")
+    district: str = Field(..., description="District name")
+    taluka: str = Field(..., description="Taluka name")
+    crops: Optional[List[str]] = Field(default_factory=list, description="User's selected crops (max 2)")
+    is_active: bool = Field(..., description="Whether user is active")
+    created_at: datetime = Field(..., description="Account creation timestamp")
+    
+    class Config:
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "mobile_number": "9876543210",
+                "name": "Josh Patel",
+                "state": "Gujarat",
+                "district": "Rajkot",
+                "taluka": "Gondal",
+                "crops": ["Wheat", "Cotton"],
+                "is_active": True,
+                "created_at": "2024-01-01T00:00:00Z"
+            }
+        }
+
+
+class AuthResponse(BaseModel):
+    """Schema for authentication response"""
+    success: bool = Field(..., description="Whether authentication was successful")
+    message: str = Field(..., description="Response message")
+    user: Optional[UserResponse] = Field(None, description="User data if authenticated")
+    token: Optional[str] = Field(None, description="Authentication token")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "success": True,
+                "message": "Login successful",
+                "user": {
+                    "id": 1,
+                    "mobile_number": "9876543210",
+                    "name": "Josh Patel",
+                    "state": "Gujarat",
+                    "district": "Rajkot",
+                    "taluka": "Gondal",
+                    "is_active": True,
+                    "created_at": "2024-01-01T00:00:00Z"
+                },
+                "token": "dummy_token_12345"
+            }
+        }
+
+
+class LocationDataResponse(BaseModel):
+    """Schema for location data response (states, districts, talukas)"""
+    states: List[str] = Field(..., description="List of available states")
+    districts: dict = Field(..., description="Districts mapped by state")
+    talukas: dict = Field(..., description="Talukas mapped by district")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "states": ["Gujarat"],
+                "districts": {"Gujarat": ["Rajkot", "Ahmedabad"]},
+                "talukas": {"Rajkot": ["Gondal", "Jetpur"]}
+            }
+        }
+
+
+class UpdateProfileRequest(BaseModel):
+    """Schema for updating user profile"""
+    name: Optional[str] = Field(None, min_length=2, max_length=100, description="User's full name")
+    crops: Optional[List[str]] = Field(None, max_length=2, description="User's selected crops (max 2)")
+    
+    @validator('crops')
+    def validate_crops(cls, v):
+        """Validate crops list has max 2 items"""
+        if v is not None and len(v) > 2:
+            raise ValueError('Maximum 2 crops allowed')
+        return v
+    
+    @validator('name')
+    def validate_name(cls, v):
+        """Validate name is not empty after stripping"""
+        if v is not None and not v.strip():
+            raise ValueError('Name cannot be empty')
+        return v.strip() if v else v
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Josh Patel",
+                "crops": ["Wheat", "Cotton"]
+            }
+        }

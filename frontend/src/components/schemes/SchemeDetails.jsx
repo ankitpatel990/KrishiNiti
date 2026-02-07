@@ -29,7 +29,7 @@ function SchemeDetails({ scheme, isOpen, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="large">
+    <Modal isOpen={isOpen} onClose={onClose} size="full">
       <div className="max-h-[80vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-neutral-200 px-6 py-4 flex items-start justify-between z-10">

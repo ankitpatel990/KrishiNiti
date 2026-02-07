@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   CameraIcon,
@@ -21,12 +21,14 @@ import {
   SignalIcon,
   SignalSlashIcon,
   DocumentTextIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Card } from "@components/common";
 import { ROUTES } from "@utils/constants";
 import { getRecentActivities, ACTIVITY_TYPES } from "@utils/activityTracker";
 import { timeAgo } from "@utils/helpers";
 import useNetworkStatus from "@hooks/useNetworkStatus";
+import { useAuth } from "@context/AuthContext";
 import PropTypes from "prop-types";
 
 // ---------------------------------------------------------------------------
@@ -128,15 +130,18 @@ const itemVariants = {
 // ---------------------------------------------------------------------------
 
 function GreetingBanner() {
+  const { isAuthenticated, user } = useAuth();
   const hour = new Date().getHours();
   let greeting = "Good morning";
   if (hour >= 12 && hour < 17) greeting = "Good afternoon";
   else if (hour >= 17) greeting = "Good evening";
 
+  const firstName = user?.name?.split(" ")[0];
+
   return (
     <motion.div variants={itemVariants}>
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-neutral-900 mb-2">
-        {greeting}
+        {greeting}{isAuthenticated && firstName ? `, ${firstName}` : ""}
       </h1>
       <p className="text-neutral-600 text-lg max-w-xl">
         AI-powered crop disease detection, weather forecasting, and market price
@@ -245,6 +250,40 @@ function NetworkBanner({ isOnline }) {
       <p className="text-sm text-secondary-800">
         You are currently offline. Some features may be limited.
       </p>
+    </motion.div>
+  );
+}
+
+function CropsAlertBanner() {
+  const { isAuthenticated, user } = useAuth();
+
+  // Show alert only for logged-in users without crops
+  if (!isAuthenticated || !user) return null;
+  if (user.crops && user.crops.length > 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3"
+    >
+      <ExclamationTriangleIcon className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
+      <div className="flex-1">
+        <h3 className="text-sm font-semibold text-amber-800">
+          Complete Your Profile
+        </h3>
+        <p className="text-sm text-amber-700 mt-1">
+          Add your crops to get personalized APMC price alerts and farming recommendations.
+        </p>
+        <Link
+          to={ROUTES.PROFILE}
+          className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-700 hover:text-amber-900"
+        >
+          Add Crops Now
+          <ArrowRightIcon className="h-4 w-4" />
+        </Link>
+      </div>
     </motion.div>
   );
 }
@@ -360,6 +399,7 @@ function HomePage() {
       className="space-y-8 pb-8"
     >
       <NetworkBanner isOnline={isOnline} />
+      <CropsAlertBanner />
       <GreetingBanner />
       <QuickSearch onSearch={handleSearch} />
       <QuickStats />

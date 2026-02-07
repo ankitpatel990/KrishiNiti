@@ -92,6 +92,30 @@ class MandiPrice(Base):
     )
 
 
+class User(Base):
+    """
+    User Model for authentication and profile management.
+    """
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mobile_number = Column(String(15), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    state = Column(String(100), nullable=False, index=True)
+    district = Column(String(100), nullable=False, index=True)
+    taluka = Column(String(100), nullable=False, index=True)
+    crops = Column(String(500), nullable=True)  # JSON array of max 2 crops
+    is_active = Column(Integer, default=1, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    __table_args__ = (
+        Index('idx_user_location', 'state', 'district', 'taluka'),
+        Index('idx_user_mobile', 'mobile_number'),
+        CheckConstraint("length(mobile_number) >= 10", name='check_mobile_length'),
+    )
+
+
 class GovernmentScheme(Base):
     """
     Government Schemes Information Model

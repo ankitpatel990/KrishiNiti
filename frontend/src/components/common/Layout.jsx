@@ -3,7 +3,7 @@
  *
  * Composes Header, main content area, Footer, BottomNav, and VoiceButton
  * into a consistent full-page structure. Hides footer on mobile
- * when BottomNav is visible. Supports dark mode via theme prop.
+ * when BottomNav is visible.
  */
 
 import PropTypes from "prop-types";
@@ -16,15 +16,13 @@ function Layout({
   children,
   language,
   onLanguageChange,
-  theme,
-  onToggleTheme,
   hideHeader = false,
   hideFooter = false,
   hideBottomNav = false,
   className = "",
 }) {
   return (
-    <div className="flex min-h-screen flex-col transition-colors duration-300">
+    <div className="flex min-h-screen flex-col">
       {/* Skip-to-content link for accessibility */}
       <a href="#main-content" className="sr-skip-link">
         Skip to main content
@@ -34,8 +32,6 @@ function Layout({
         <Header
           language={language}
           onLanguageChange={onLanguageChange}
-          theme={theme}
-          onToggleTheme={onToggleTheme}
         />
       )}
 
@@ -59,8 +55,6 @@ Layout.propTypes = {
   children: PropTypes.node.isRequired,
   language: PropTypes.string,
   onLanguageChange: PropTypes.func,
-  theme: PropTypes.string,
-  onToggleTheme: PropTypes.func,
   hideHeader: PropTypes.bool,
   hideFooter: PropTypes.bool,
   hideBottomNav: PropTypes.bool,

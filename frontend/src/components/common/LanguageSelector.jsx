@@ -65,7 +65,7 @@ function LanguageSelector({ currentLanguage, onLanguageChange, compact = false }
       <button
         type="button"
         onClick={toggleDropdown}
-        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label={t("common.selectLanguage")}
@@ -86,7 +86,7 @@ function LanguageSelector({ currentLanguage, onLanguageChange, compact = false }
 
       {isOpen && (
         <div
-          className="absolute right-0 z-50 mt-1 w-44 origin-top-right rounded-lg bg-white dark:bg-neutral-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none animate-fade-in"
+          className="absolute right-0 z-50 mt-1 w-44 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black/5 focus:outline-none animate-fade-in"
           role="listbox"
           aria-label={t("common.selectLanguage")}
         >
@@ -102,8 +102,8 @@ function LanguageSelector({ currentLanguage, onLanguageChange, compact = false }
                     w-full flex items-center justify-between px-3 py-2 text-sm transition-colors
                     ${
                       isSelected
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                        : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-700"
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-neutral-700 hover:bg-neutral-50"
                     }
                   `}
                   role="option"
@@ -111,12 +111,12 @@ function LanguageSelector({ currentLanguage, onLanguageChange, compact = false }
                 >
                   <span className="flex flex-col items-start">
                     <span className="font-medium">{option.name}</span>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="text-xs text-neutral-500">
                       {option.nativeName}
                     </span>
                   </span>
                   {isSelected && (
-                    <CheckIcon className="h-4 w-4 text-primary-600 dark:text-primary-400" aria-hidden="true" />
+                    <CheckIcon className="h-4 w-4 text-primary-600" aria-hidden="true" />
                   )}
                 </button>
               );

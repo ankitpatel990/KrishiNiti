@@ -1,6 +1,6 @@
 /**
  * Header - Top navigation bar with logo, navigation links,
- * language selector, dark mode toggle, and user profile.
+ * language selector, and user profile.
  *
  * Features a subtle gradient background and responsive
  * hamburger menu on mobile.
@@ -13,8 +13,6 @@ import PropTypes from "prop-types";
 import {
   Bars3Icon,
   XMarkIcon,
-  SunIcon,
-  MoonIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Squares2X2Icon,
@@ -23,7 +21,7 @@ import { ROUTES, APP_NAME } from "@utils/constants";
 import { useAuth } from "@context/AuthContext";
 import LanguageSelector from "./LanguageSelector";
 
-function Header({ language, onLanguageChange, theme, onToggleTheme }) {
+function Header({ language, onLanguageChange }) {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -52,11 +50,9 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
     closeMobile();
   }, [logout, navigate, closeMobile]);
 
-  const isDark = theme === "dark";
-
   return (
     <header
-      className="sticky top-0 z-30 border-b border-neutral-200 dark:border-neutral-700 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm transition-colors duration-300"
+      className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur-sm transition-colors duration-300"
       id="app-header"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -91,8 +87,8 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                     "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
                     isActive
-                      ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                      : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-neutral-100 dark:hover:bg-neutral-700",
+                      ? "bg-primary-50 text-primary-700"
+                      : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
                   ].join(" ")}
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -104,23 +100,6 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
 
           {/* Right actions */}
           <div className="flex items-center gap-1.5">
-            {/* Theme toggle */}
-            {onToggleTheme && (
-              <button
-                type="button"
-                onClick={onToggleTheme}
-                className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                aria-label={t("header.switchTheme", { mode: isDark ? t("header.lightMode") : t("header.darkMode") })}
-                id="theme-toggle"
-              >
-                {isDark ? (
-                  <SunIcon className="h-5 w-5" aria-hidden="true" />
-                ) : (
-                  <MoonIcon className="h-5 w-5" aria-hidden="true" />
-                )}
-              </button>
-            )}
-
             {/* Language selector */}
             {onLanguageChange && (
               <LanguageSelector
@@ -138,8 +117,8 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                     className={[
                       "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
                       location.pathname === ROUTES.DASHBOARD
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                        : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-neutral-600 hover:bg-neutral-100",
                     ].join(" ")}
                   >
                     <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
@@ -150,8 +129,8 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                     className={[
                       "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
                       location.pathname === ROUTES.PROFILE
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                        : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-neutral-600 hover:bg-neutral-100",
                     ].join(" ")}
                     title={t("nav.profile")}
                   >
@@ -161,7 +140,7 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     aria-label={t("nav.logout")}
                     title={t("nav.logout")}
                   >
@@ -182,7 +161,7 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
             <button
               type="button"
               onClick={toggleMobile}
-              className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu"
               aria-label={t("header.toggleMenu")}
@@ -201,7 +180,7 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
       {mobileMenuOpen && (
         <nav
           id="mobile-menu"
-          className="md:hidden border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 animate-slide-down"
+          className="md:hidden border-t border-neutral-200 bg-white animate-slide-down"
           aria-label="Mobile navigation"
         >
           <div className="px-4 py-3 space-y-1">
@@ -215,8 +194,8 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                   className={[
                     "block px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                      : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                      ? "bg-primary-50 text-primary-700"
+                      : "text-neutral-600 hover:bg-neutral-100",
                   ].join(" ")}
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -226,7 +205,7 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
             })}
 
             {/* Mobile Auth Links */}
-            <div className="border-t border-neutral-200 dark:border-neutral-700 mt-2 pt-2">
+            <div className="border-t border-neutral-200 mt-2 pt-2">
               {isAuthenticated && user ? (
                 <>
                   <Link
@@ -235,8 +214,8 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                     className={[
                       "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       location.pathname === ROUTES.DASHBOARD
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                        : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-neutral-600 hover:bg-neutral-100",
                     ].join(" ")}
                   >
                     <Squares2X2Icon className="h-5 w-5" />
@@ -248,8 +227,8 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                     className={[
                       "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       location.pathname === ROUTES.PROFILE
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                        : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                        ? "bg-primary-50 text-primary-700"
+                        : "text-neutral-600 hover:bg-neutral-100",
                     ].join(" ")}
                   >
                     <UserCircleIcon className="h-5 w-5" />
@@ -258,7 +237,7 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 transition-colors"
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
                   >
                     <ArrowRightOnRectangleIcon className="h-5 w-5" />
                     {t("nav.logout")}
@@ -284,8 +263,6 @@ function Header({ language, onLanguageChange, theme, onToggleTheme }) {
 Header.propTypes = {
   language: PropTypes.string,
   onLanguageChange: PropTypes.func,
-  theme: PropTypes.string,
-  onToggleTheme: PropTypes.func,
 };
 
 export default Header;

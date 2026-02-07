@@ -192,10 +192,10 @@ function SignupPage() {
       >
         <Card className="p-6 sm:p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-neutral-900">
               Create Account
             </h1>
-            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+            <p className="mt-2 text-neutral-600">
               Register to access all features
             </p>
           </div>
@@ -276,11 +276,11 @@ function SignupPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm text-neutral-600">
               Already have an account?{" "}
               <Link
                 to={ROUTES.LOGIN}
-                className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                className="font-medium text-primary-600 hover:text-primary-700"
               >
                 Login
               </Link>

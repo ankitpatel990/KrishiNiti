@@ -45,9 +45,6 @@
     "signup": "સાઇન અપ"
   },
   "header": {
-    "switchTheme": "{{mode}} મોડમાં બદલો",
-    "lightMode": "લાઇટ",
-    "darkMode": "ડાર્ક",
     "toggleMenu": "નેવિગેશન મેનૂ ટૉગલ કરો"
   },
   "home": {

@@ -548,5 +548,203 @@
     "min_price": 304.0,
     "max_price": 324.0,
     "modal_price": 314.0
+  },
+  {
+    "commodity": "Wheat",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 2280.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 2180.0,
+    "max_price": 2380.0,
+    "modal_price": 2280.0
+  },
+  {
+    "commodity": "Wheat",
+    "mandi_name": "Ahmedabad Mandi",
+    "state": "Gujarat",
+    "district": "Ahmedabad",
+    "price_per_quintal": 2300.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 2200.0,
+    "max_price": 2400.0,
+    "modal_price": 2300.0
+  },
+  {
+    "commodity": "Wheat",
+    "mandi_name": "Gondal Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 2265.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 2165.0,
+    "max_price": 2365.0,
+    "modal_price": 2265.0
+  },
+  {
+    "commodity": "Groundnut",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 5450.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 5250.0,
+    "max_price": 5650.0,
+    "modal_price": 5450.0
+  },
+  {
+    "commodity": "Groundnut",
+    "mandi_name": "Gondal Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 5400.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 5200.0,
+    "max_price": 5600.0,
+    "modal_price": 5400.0
+  },
+  {
+    "commodity": "Groundnut",
+    "mandi_name": "Junagadh Mandi",
+    "state": "Gujarat",
+    "district": "Junagadh",
+    "price_per_quintal": 5380.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 5180.0,
+    "max_price": 5580.0,
+    "modal_price": 5380.0
+  },
+  {
+    "commodity": "Cumin",
+    "mandi_name": "Unjha Mandi",
+    "state": "Gujarat",
+    "district": "Mehsana",
+    "price_per_quintal": 42500.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 41000.0,
+    "max_price": 44000.0,
+    "modal_price": 42500.0
+  },
+  {
+    "commodity": "Cumin",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 42200.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 40700.0,
+    "max_price": 43700.0,
+    "modal_price": 42200.0
+  },
+  {
+    "commodity": "Onion",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 1450.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 1250.0,
+    "max_price": 1650.0,
+    "modal_price": 1450.0
+  },
+  {
+    "commodity": "Onion",
+    "mandi_name": "Ahmedabad Mandi",
+    "state": "Gujarat",
+    "district": "Ahmedabad",
+    "price_per_quintal": 1480.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 1280.0,
+    "max_price": 1680.0,
+    "modal_price": 1480.0
+  },
+  {
+    "commodity": "Potato",
+    "mandi_name": "Ahmedabad Mandi",
+    "state": "Gujarat",
+    "district": "Ahmedabad",
+    "price_per_quintal": 1120.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 980.0,
+    "max_price": 1260.0,
+    "modal_price": 1120.0
+  },
+  {
+    "commodity": "Potato",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 1100.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 960.0,
+    "max_price": 1240.0,
+    "modal_price": 1100.0
+  },
+  {
+    "commodity": "Chilli",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 12500.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 11500.0,
+    "max_price": 13500.0,
+    "modal_price": 12500.0
+  },
+  {
+    "commodity": "Chilli",
+    "mandi_name": "Ahmedabad Mandi",
+    "state": "Gujarat",
+    "district": "Ahmedabad",
+    "price_per_quintal": 12650.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 11650.0,
+    "max_price": 13650.0,
+    "modal_price": 12650.0
+  },
+  {
+    "commodity": "Paddy",
+    "mandi_name": "Ahmedabad Mandi",
+    "state": "Gujarat",
+    "district": "Ahmedabad",
+    "price_per_quintal": 2100.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 1950.0,
+    "max_price": 2250.0,
+    "modal_price": 2100.0
+  },
+  {
+    "commodity": "Paddy",
+    "mandi_name": "Surat Mandi",
+    "state": "Gujarat",
+    "district": "Surat",
+    "price_per_quintal": 2080.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 1930.0,
+    "max_price": 2230.0,
+    "modal_price": 2080.0
+  },
+  {
+    "commodity": "Maize",
+    "mandi_name": "Rajkot Mandi",
+    "state": "Gujarat",
+    "district": "Rajkot",
+    "price_per_quintal": 1950.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 1850.0,
+    "max_price": 2050.0,
+    "modal_price": 1950.0
+  },
+  {
+    "commodity": "Maize",
+    "mandi_name": "Ahmedabad Mandi",
+    "state": "Gujarat",
+    "district": "Ahmedabad",
+    "price_per_quintal": 1980.0,
+    "arrival_date": "2024-01-18T00:00:00Z",
+    "min_price": 1880.0,
+    "max_price": 2080.0,
+    "modal_price": 1980.0
   }
 ]

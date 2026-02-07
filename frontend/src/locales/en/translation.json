@@ -45,9 +45,6 @@
     "signup": "Sign Up"
   },
   "header": {
-    "switchTheme": "Switch to {{mode}} mode",
-    "lightMode": "light",
-    "darkMode": "dark",
     "toggleMenu": "Toggle navigation menu"
   },
   "home": {

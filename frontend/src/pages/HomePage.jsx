@@ -141,10 +141,10 @@ function GreetingBanner() {
 
   return (
     <motion.div variants={itemVariants}>
-      <h1 className="text-3xl sm:text-4xl font-display font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+      <h1 className="text-3xl sm:text-4xl font-display font-bold text-neutral-900 mb-2">
         {greeting}{isAuthenticated && firstName ? `, ${firstName}` : ""}
       </h1>
-      <p className="text-neutral-600 dark:text-neutral-400 text-lg max-w-xl">
+      <p className="text-neutral-600 text-lg max-w-xl">
         {t("home.tagline")}
       </p>
     </motion.div>
@@ -179,7 +179,7 @@ function QuickSearch({ onSearch }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t("home.searchPlaceholder")}
-        className="w-full rounded-xl border border-neutral-200 bg-white dark:bg-neutral-800 dark:border-neutral-700 py-3 pl-11 pr-4 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+        className="w-full rounded-xl border border-neutral-200 bg-white py-3 pl-11 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
         aria-label={t("common.search")}
       />
     </motion.form>
@@ -212,10 +212,10 @@ function FeatureCard({ feature }) {
             <h3 className={`text-base font-semibold ${feature.textClass} mb-1`}>
               {feature.title}
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            <p className="text-sm text-neutral-600 leading-relaxed">
               {feature.description}
             </p>
-            <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary-600 dark:text-primary-400">
+            <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary-600">
               {t("common.getStarted")}
               <ArrowRightIcon className="h-4 w-4" />
             </div>
@@ -307,7 +307,7 @@ function RecentActivity() {
 
   return (
     <motion.div variants={itemVariants}>
-      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
+      <h2 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
         <ClockIcon className="h-5 w-5 text-neutral-500" />
         {t("home.recentActivity")}
       </h2>

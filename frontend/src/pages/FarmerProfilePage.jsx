@@ -84,7 +84,7 @@ function ProfileEditForm({
 
       {/* Crops Selection */}
       <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+        <label className="block text-sm font-medium text-neutral-700 mb-2">
           My Crops (Max 2)
         </label>
         <p className="text-xs text-neutral-500 mb-3">
@@ -278,7 +278,7 @@ function FarmerProfilePage() {
     >
       {/* Page Header */}
       <motion.div variants={itemVariants} className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+        <h1 className="text-2xl font-bold text-neutral-900 mb-2">
           My Profile
         </h1>
         <p className="text-neutral-500">
@@ -294,7 +294,7 @@ function FarmerProfilePage() {
               <UserIcon className="h-8 w-8 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+              <h2 className="text-xl font-semibold text-neutral-900">
                 {user.name}
               </h2>
               <div className="flex flex-wrap items-center gap-4 mt-2">
@@ -330,7 +330,7 @@ function FarmerProfilePage() {
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <PencilIcon className="h-5 w-5 text-primary-600" />
-            <h3 className="font-semibold text-neutral-900 dark:text-white">
+            <h3 className="font-semibold text-neutral-900">
               Edit Profile
             </h3>
           </div>

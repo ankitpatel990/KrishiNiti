@@ -51,7 +51,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <CloudIcon className="h-5 w-5 text-accent-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Weather</h3>
+          <h3 className="font-semibold text-neutral-900">Weather</h3>
         </div>
         <div className="flex justify-center py-8">
           <LoadingSpinner size="md" message="Loading weather..." />
@@ -65,7 +65,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <CloudIcon className="h-5 w-5 text-accent-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Weather</h3>
+          <h3 className="font-semibold text-neutral-900">Weather</h3>
         </div>
         <p className="text-sm text-neutral-500">{error}</p>
       </Card>
@@ -77,7 +77,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <CloudIcon className="h-5 w-5 text-accent-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Weather</h3>
+          <h3 className="font-semibold text-neutral-900">Weather</h3>
         </div>
         <p className="text-sm text-neutral-500">No weather data available</p>
       </Card>
@@ -96,7 +96,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <CloudIcon className="h-5 w-5 text-accent-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Weather</h3>
+          <h3 className="font-semibold text-neutral-900">Weather</h3>
         </div>
         <Link
           to={ROUTES.WEATHER}
@@ -113,7 +113,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
 
       <div className="flex items-center gap-4 mb-4">
         <div className="flex-1">
-          <p className="text-3xl font-bold text-neutral-900 dark:text-white">
+          <p className="text-3xl font-bold text-neutral-900">
             {Math.round(today.tempMax)}°C
           </p>
           <p className="text-sm text-neutral-500">
@@ -121,7 +121,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-neutral-600">
             Precipitation
           </p>
           <p className="text-lg font-semibold text-accent-600">
@@ -131,7 +131,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
       </div>
 
       {/* 5-day forecast */}
-      <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+      <div className="border-t border-neutral-200 pt-4">
         <p className="text-xs font-medium text-neutral-500 mb-3">5-Day Forecast</p>
         <div className="grid grid-cols-5 gap-2">
           {daily.time?.slice(0, 5).map((date, idx) => {
@@ -139,7 +139,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
             return (
               <div key={date} className="text-center">
                 <p className="text-xs text-neutral-500">{dayName}</p>
-                <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                <p className="text-sm font-semibold text-neutral-900">
                   {Math.round(daily.temperature_2m_max?.[idx] ?? 0)}°
                 </p>
                 <p className="text-xs text-neutral-400">
@@ -168,7 +168,7 @@ function WeatherCard({ weather, alerts, loading, error, location }) {
 function CropPriceCard({ crop, priceData, trends, loading }) {
   if (loading) {
     return (
-      <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+      <div className="p-4 bg-neutral-50 rounded-lg">
         <LoadingSpinner size="sm" />
       </div>
     );
@@ -179,9 +179,9 @@ function CropPriceCard({ crop, priceData, trends, loading }) {
   const trendPercent = trends?.trend?.percent_change;
 
   return (
-    <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+    <div className="p-4 bg-neutral-50 rounded-lg">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="font-medium text-neutral-900 dark:text-white">{crop}</h4>
+        <h4 className="font-medium text-neutral-900">{crop}</h4>
         {trendDirection && (
           <div
             className={`flex items-center gap-1 text-xs font-medium ${
@@ -220,7 +220,7 @@ function APMCPricesCard({ crops, pricesData, trendsData, loading }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <CurrencyRupeeIcon className="h-5 w-5 text-secondary-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">APMC Prices</h3>
+          <h3 className="font-semibold text-neutral-900">APMC Prices</h3>
         </div>
         <div className="flex justify-center py-8">
           <LoadingSpinner size="md" message="Loading prices..." />
@@ -234,7 +234,7 @@ function APMCPricesCard({ crops, pricesData, trendsData, loading }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <CurrencyRupeeIcon className="h-5 w-5 text-secondary-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">APMC Prices</h3>
+          <h3 className="font-semibold text-neutral-900">APMC Prices</h3>
         </div>
         <div className="text-center py-6">
           <p className="text-sm text-neutral-500 mb-3">
@@ -256,7 +256,7 @@ function APMCPricesCard({ crops, pricesData, trendsData, loading }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <CurrencyRupeeIcon className="h-5 w-5 text-secondary-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">APMC Prices</h3>
+          <h3 className="font-semibold text-neutral-900">APMC Prices</h3>
         </div>
         <Link
           to={ROUTES.APMC}
@@ -289,7 +289,7 @@ function SchemesCard({ schemes, loading, error, state }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <DocumentTextIcon className="h-5 w-5 text-green-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Government Schemes</h3>
+          <h3 className="font-semibold text-neutral-900">Government Schemes</h3>
         </div>
         <div className="flex justify-center py-8">
           <LoadingSpinner size="md" message="Loading schemes..." />
@@ -303,7 +303,7 @@ function SchemesCard({ schemes, loading, error, state }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <DocumentTextIcon className="h-5 w-5 text-green-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Government Schemes</h3>
+          <h3 className="font-semibold text-neutral-900">Government Schemes</h3>
         </div>
         <p className="text-sm text-neutral-500">
           {error || "No schemes available for your state"}
@@ -319,7 +319,7 @@ function SchemesCard({ schemes, loading, error, state }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <DocumentTextIcon className="h-5 w-5 text-green-600" />
-          <h3 className="font-semibold text-neutral-900 dark:text-white">Government Schemes</h3>
+          <h3 className="font-semibold text-neutral-900">Government Schemes</h3>
         </div>
         <Link
           to={ROUTES.SCHEMES}
@@ -337,9 +337,9 @@ function SchemesCard({ schemes, loading, error, state }) {
         {displaySchemes.map((scheme) => (
           <div
             key={scheme.id}
-            className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
+            className="p-3 bg-neutral-50 rounded-lg"
           >
-            <h4 className="text-sm font-medium text-neutral-900 dark:text-white mb-1 line-clamp-1">
+            <h4 className="text-sm font-medium text-neutral-900 mb-1 line-clamp-1">
               {scheme.scheme_name}
             </h4>
             <p className="text-xs text-neutral-500 line-clamp-2">
@@ -528,7 +528,7 @@ function FarmerDashboardPage() {
             <UserIcon className="h-8 w-8 text-primary-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-neutral-900">
               Welcome, {user.name?.split(" ")[0]}
             </h1>
             <div className="flex items-center gap-4 mt-1">

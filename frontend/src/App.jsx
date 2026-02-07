@@ -41,15 +41,13 @@ function PageLoader() {
  * Separated so that useApp can access the provider above it.
  */
 function AppShell() {
-  const { language, setLanguage, theme, toggleTheme } = useApp();
+  const { language, setLanguage } = useApp();
   const location = useLocation();
 
   return (
     <Layout
       language={language}
       onLanguageChange={setLanguage}
-      theme={theme}
-      onToggleTheme={toggleTheme}
     >
       <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
@@ -78,7 +76,7 @@ function AppShell() {
  * Root application component.
  *
  * Wraps the entire tree with context providers:
- *   1. AppProvider       - language, theme, preferences, global loading/error
+ *   1. AppProvider       - language, preferences, global loading/error
  *   2. LocationProvider  - user pincode and coordinates
  *   3. VoiceProvider     - speech recognition state
  */

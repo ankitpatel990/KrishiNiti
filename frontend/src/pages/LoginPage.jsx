@@ -121,10 +121,10 @@ function LoginPage() {
       >
         <Card className="p-6 sm:p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-neutral-900">
               Welcome Back
             </h1>
-            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+            <p className="mt-2 text-neutral-600">
               Login with your mobile number
             </p>
           </div>
@@ -184,7 +184,7 @@ function LoginPage() {
                   type="button"
                   onClick={handleRequestOtp}
                   disabled={otpLoading}
-                  className="w-full text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                  className="w-full text-sm text-primary-600 hover:text-primary-700"
                 >
                   Resend OTP
                 </button>
@@ -193,11 +193,11 @@ function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm text-neutral-600">
               {"Don't have an account? "}
               <Link
                 to={ROUTES.SIGNUP}
-                className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                className="font-medium text-primary-600 hover:text-primary-700"
               >
                 Sign up
               </Link>

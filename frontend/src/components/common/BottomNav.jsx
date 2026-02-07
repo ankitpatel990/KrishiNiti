@@ -64,7 +64,7 @@ function BottomNav({ className = "" }) {
 
   return (
     <nav
-      className={`fixed bottom-0 inset-x-0 z-30 border-t border-neutral-200 dark:border-neutral-700 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm safe-area-bottom ${className}`}
+      className={`fixed bottom-0 inset-x-0 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur-sm safe-area-bottom ${className}`}
       aria-label="Bottom navigation"
     >
       <div className="flex items-center justify-around h-16">
@@ -81,8 +81,8 @@ function BottomNav({ className = "" }) {
                 "flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-lg min-w-[4rem]",
                 "transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500",
                 isActive
-                  ? "text-primary-700 dark:text-primary-400"
-                  : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
+                  ? "text-primary-700"
+                  : "text-neutral-500 hover:text-neutral-700",
               ].join(" ")}
               aria-current={isActive ? "page" : undefined}
               aria-label={label}

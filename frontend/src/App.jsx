@@ -8,6 +8,9 @@ import { AuthProvider } from "@context/AuthContext";
 import { Layout, PageTransition, LoadingSpinner, ErrorBoundary } from "@components/common";
 import useApp from "@hooks/useApp";
 
+// Initialize i18n
+import "@i18n";
+
 // ---------------------------------------------------------------------------
 // Lazy-loaded page components (code splitting)
 // ---------------------------------------------------------------------------
@@ -16,6 +19,7 @@ const HomePage = lazy(() => import("@pages/HomePage"));
 const LoginPage = lazy(() => import("@pages/LoginPage"));
 const SignupPage = lazy(() => import("@pages/SignupPage"));
 const FarmerProfilePage = lazy(() => import("@pages/FarmerProfilePage"));
+const FarmerDashboardPage = lazy(() => import("@pages/FarmerDashboardPage"));
 const DiseaseDetectionPage = lazy(() => import("@pages/DiseaseDetectionPage"));
 const WeatherPage = lazy(() => import("@pages/WeatherPage"));
 const APMCPricePage = lazy(() => import("@pages/APMCPricePage"));
@@ -37,13 +41,13 @@ function PageLoader() {
  * Separated so that useApp can access the provider above it.
  */
 function AppShell() {
-  const { language, toggleLanguage, theme, toggleTheme } = useApp();
+  const { language, setLanguage, theme, toggleTheme } = useApp();
   const location = useLocation();
 
   return (
     <Layout
       language={language}
-      onToggleLanguage={toggleLanguage}
+      onLanguageChange={setLanguage}
       theme={theme}
       onToggleTheme={toggleTheme}
     >
@@ -56,6 +60,7 @@ function AppShell() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/profile" element={<FarmerProfilePage />} />
+                <Route path="/my-dashboard" element={<FarmerDashboardPage />} />
                 <Route path="/disease" element={<DiseaseDetectionPage />} />
                 <Route path="/weather" element={<WeatherPage />} />
                 <Route path="/apmc" element={<APMCPricePage />} />

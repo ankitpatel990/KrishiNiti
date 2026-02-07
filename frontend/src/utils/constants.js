@@ -25,7 +25,7 @@ export const API_RETRY_DELAY_MS = 1000;
 // Application Metadata
 // ---------------------------------------------------------------------------
 
-export const APP_NAME = import.meta.env.VITE_APP_NAME || "FarmHelp";
+export const APP_NAME = import.meta.env.VITE_APP_NAME || "KrishiNiti";
 
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION || "1.0.0";
 
@@ -116,6 +116,13 @@ export const MODEL_PATH = import.meta.env.VITE_MODEL_PATH || "/models";
 export const LANGUAGES = {
   EN: "en",
   HI: "hi",
+  GU: "gu",
+};
+
+export const LANGUAGE_NAMES = {
+  [LANGUAGES.EN]: "English",
+  [LANGUAGES.HI]: "हिंदी",
+  [LANGUAGES.GU]: "ગુજરાતી",
 };
 
 export const DEFAULT_LANGUAGE = LANGUAGES.EN;
@@ -148,6 +155,7 @@ export const ROUTES = {
   LOGIN: "/login",
   SIGNUP: "/signup",
   PROFILE: "/profile",
+  DASHBOARD: "/my-dashboard",
   DISEASE_DETECTION: "/disease",
   WEATHER: "/weather",
   APMC: "/apmc",

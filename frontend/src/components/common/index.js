@@ -17,6 +17,7 @@ export { default as FeatureTour } from "./FeatureTour";
 export { default as Footer } from "./Footer";
 export { default as Header } from "./Header";
 export { default as Input } from "./Input";
+export { default as LanguageSelector } from "./LanguageSelector";
 export { default as Layout } from "./Layout";
 export { default as LoadingSpinner } from "./LoadingSpinner";
 export { default as Modal } from "./Modal";

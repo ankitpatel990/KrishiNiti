@@ -1,0 +1,200 @@
+{
+  "common": {
+    "appName": "KrishiNiti",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "viewAll": "View All",
+    "seeMore": "See More",
+    "getStarted": "Get started",
+    "learnMore": "Learn More",
+    "noDataFound": "No data found",
+    "offline": "You are currently offline. Some features may be limited.",
+    "connected": "Connected",
+    "selectLanguage": "Select Language"
+  },
+  "languages": {
+    "en": "English",
+    "hi": "Hindi",
+    "gu": "Gujarati"
+  },
+  "nav": {
+    "home": "Home",
+    "diseaseDetection": "Disease Detection",
+    "weather": "Weather",
+    "apmcPrice": "APMC Price",
+    "schemes": "Schemes",
+    "profile": "Profile",
+    "dashboard": "My Dashboard",
+    "login": "Login",
+    "logout": "Logout",
+    "signup": "Sign Up"
+  },
+  "header": {
+    "switchTheme": "Switch to {{mode}} mode",
+    "lightMode": "light",
+    "darkMode": "dark",
+    "toggleMenu": "Toggle navigation menu"
+  },
+  "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "tagline": "AI-powered crop disease detection, weather forecasting, and market price tracking for Indian farmers.",
+    "searchPlaceholder": "Search features... (e.g. crop disease, weather, APMC prices)",
+    "recentActivity": "Recent Activity",
+    "completeProfile": "Complete Your Profile",
+    "addCropsMessage": "Add your crops to get personalized APMC price alerts and farming recommendations.",
+    "addCropsNow": "Add Crops Now"
+  },
+  "features": {
+    "diseaseDetection": {
+      "title": "Disease Detection",
+      "description": "Upload a photo of your crop and get instant AI-powered disease identification with treatment recommendations.",
+      "aiPowered": "AI-powered"
+    },
+    "weather": {
+      "title": "Weather Forecast",
+      "description": "Get accurate 7-day weather forecasts, farming advisories, and severe weather alerts for your area.",
+      "sevenDay": "7-Day Forecast",
+      "pincodeBased": "Pincode-based"
+    },
+    "apmc": {
+      "title": "APMC Price",
+      "description": "Compare real-time commodity prices across APMCs, find the best selling market, and track price trends.",
+      "livePrices": "Live Prices"
+    },
+    "schemes": {
+      "title": "Government Schemes",
+      "description": "Explore national and state-specific schemes with complete details on benefits, eligibility, and application process."
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Login successful",
+    "signupSuccess": "Account created successfully",
+    "logoutSuccess": "Logged out successfully"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "farmDetails": "Farm Details",
+    "crops": "My Crops",
+    "location": "Location",
+    "pincode": "Pincode",
+    "state": "State",
+    "district": "District",
+    "landSize": "Land Size (in acres)",
+    "addCrop": "Add Crop",
+    "removeCrop": "Remove Crop",
+    "updateProfile": "Update Profile",
+    "profileUpdated": "Profile updated successfully"
+  },
+  "disease": {
+    "title": "Disease Detection",
+    "uploadImage": "Upload Image",
+    "takePhoto": "Take Photo",
+    "selectCrop": "Select Crop Type",
+    "analyzing": "Analyzing...",
+    "result": "Detection Result",
+    "disease": "Disease",
+    "confidence": "Confidence",
+    "treatment": "Treatment",
+    "prevention": "Prevention",
+    "noDisease": "No disease detected",
+    "healthyCrop": "Your crop appears to be healthy",
+    "uploadPrompt": "Upload a clear photo of the affected plant leaf for accurate detection"
+  },
+  "weather": {
+    "title": "Weather Forecast",
+    "currentWeather": "Current Weather",
+    "weeklyForecast": "Weekly Forecast",
+    "farmingAdvice": "Farming Advice",
+    "alerts": "Weather Alerts",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "rain": "Rain",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "feelsLike": "Feels like",
+    "enterPincode": "Enter your pincode",
+    "getWeather": "Get Weather",
+    "noAlerts": "No weather alerts"
+  },
+  "apmc": {
+    "title": "APMC Market Prices",
+    "selectCommodity": "Select Commodity",
+    "selectState": "Select State",
+    "selectMarket": "Select Market",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "modalPrice": "Modal Price",
+    "pricePerQuintal": "Price per Quintal",
+    "bestMarket": "Best Market",
+    "priceAlerts": "Price Alerts",
+    "createAlert": "Create Alert",
+    "sellAdvisory": "Sell Advisory",
+    "noData": "No price data available"
+  },
+  "schemes": {
+    "title": "Government Schemes",
+    "nationalSchemes": "National Schemes",
+    "stateSchemes": "State Schemes",
+    "eligibility": "Eligibility",
+    "benefits": "Benefits",
+    "howToApply": "How to Apply",
+    "documents": "Required Documents",
+    "deadline": "Application Deadline",
+    "website": "Official Website",
+    "applyNow": "Apply Now",
+    "noSchemes": "No schemes found"
+  },
+  "voice": {
+    "title": "Voice Assistant",
+    "listening": "Listening...",
+    "processing": "Processing...",
+    "speak": "Speak now",
+    "tapToSpeak": "Tap to speak",
+    "voiceCommands": "Voice Commands",
+    "tutorial": "Voice Tutorial"
+  },
+  "errors": {
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "invalidInput": "Invalid input. Please check your entries.",
+    "sessionExpired": "Session expired. Please login again.",
+    "permissionDenied": "Permission denied.",
+    "notFound": "Resource not found."
+  },
+  "footer": {
+    "copyright": "KrishiNiti. All rights reserved.",
+    "madeWith": "Made with love for Indian farmers"
+  }
+}

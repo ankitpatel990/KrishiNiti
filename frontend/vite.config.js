@@ -25,6 +25,8 @@ export default defineConfig(({ mode }) => {
         "@pages": path.resolve(__dirname, "./src/pages"),
         "@assets": path.resolve(__dirname, "./src/assets"),
         "@styles": path.resolve(__dirname, "./src/styles"),
+        "@locales": path.resolve(__dirname, "./src/locales"),
+        "@i18n": path.resolve(__dirname, "./src/i18n"),
       },
     },
 

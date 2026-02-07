@@ -46,9 +46,10 @@ COPY --from=frontend /app/frontend/dist /app/static
 ENV PORT=7860
 ENV ENVIRONMENT=production
 ENV STATIC_DIR=/app/static
-ENV DATABASE_URL=sqlite:///./farmhelp.db
+# Database URL will be set by start.sh based on available storage
+ENV DATABASE_URL=sqlite:////app/backend/farmhelp.db
 ENV LOG_LEVEL=INFO
-ENV LOG_FILE=logs/app.log
+ENV LOG_FILE=/app/backend/logs/app.log
 ENV RATE_LIMIT_PER_MINUTE=60
 ENV WEATHER_CACHE_HOURS=6
 ENV MANDI_CACHE_HOURS=24
@@ -62,5 +63,8 @@ ENV APP_VERSION=1.0.0
 
 EXPOSE 7860
 
-# Init DB from JSON data, then start server (PORT set by HF Spaces, default 7860)
-CMD ["sh", "-c", "python init_db.py && (python seed_data.py || true) && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
+# Make startup script executable (already copied with backend/)
+RUN chmod +x /app/backend/start.sh
+
+# Run startup script
+CMD ["/app/backend/start.sh"]

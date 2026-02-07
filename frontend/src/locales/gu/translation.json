@@ -1,0 +1,200 @@
+{
+  "common": {
+    "appName": "કૃષિનીતિ",
+    "loading": "લોડ થઈ રહ્યું છે...",
+    "error": "એક ભૂલ આવી",
+    "retry": "ફરીથી પ્રયાસ કરો",
+    "cancel": "રદ કરો",
+    "save": "સાચવો",
+    "delete": "કાઢી નાખો",
+    "edit": "સંપાદિત કરો",
+    "submit": "સબમિટ કરો",
+    "search": "શોધો",
+    "filter": "ફિલ્ટર",
+    "close": "બંધ કરો",
+    "back": "પાછા",
+    "next": "આગળ",
+    "previous": "પાછલું",
+    "yes": "હા",
+    "no": "ના",
+    "ok": "ઠીક છે",
+    "viewAll": "બધું જુઓ",
+    "seeMore": "વધુ જુઓ",
+    "getStarted": "શરૂ કરો",
+    "learnMore": "વધુ જાણો",
+    "noDataFound": "કોઈ ડેટા મળ્યો નથી",
+    "offline": "તમે હાલમાં ઑફલાઈન છો. કેટલીક સુવિધાઓ મર્યાદિત હોઈ શકે છે.",
+    "connected": "કનેક્ટેડ",
+    "selectLanguage": "ભાષા પસંદ કરો"
+  },
+  "languages": {
+    "en": "અંગ્રેજી",
+    "hi": "હિન્દી",
+    "gu": "ગુજરાતી"
+  },
+  "nav": {
+    "home": "હોમ",
+    "diseaseDetection": "રોગ શોધ",
+    "weather": "હવામાન",
+    "apmcPrice": "APMC ભાવ",
+    "schemes": "યોજનાઓ",
+    "profile": "પ્રોફાઇલ",
+    "dashboard": "મારું ડેશબોર્ડ",
+    "login": "લૉગિન",
+    "logout": "લૉગઆઉટ",
+    "signup": "સાઇન અપ"
+  },
+  "header": {
+    "switchTheme": "{{mode}} મોડમાં બદલો",
+    "lightMode": "લાઇટ",
+    "darkMode": "ડાર્ક",
+    "toggleMenu": "નેવિગેશન મેનૂ ટૉગલ કરો"
+  },
+  "home": {
+    "greeting": {
+      "morning": "સુપ્રભાત",
+      "afternoon": "નમસ્તે",
+      "evening": "શુભ સંધ્યા"
+    },
+    "tagline": "ભારતીય ખેડૂતો માટે AI-સંચાલિત પાક રોગ શોધ, હવામાન આગાહી અને બજાર ભાવ ટ્રેકિંગ.",
+    "searchPlaceholder": "સુવિધાઓ શોધો... (દા.ત. પાક રોગ, હવામાન, APMC ભાવ)",
+    "recentActivity": "તાજેતરની પ્રવૃત્તિ",
+    "completeProfile": "તમારી પ્રોફાઇલ પૂર્ણ કરો",
+    "addCropsMessage": "વ્યક્તિગત APMC ભાવ અલર્ટ અને ખેતીની ભલામણો મેળવવા માટે તમારા પાક ઉમેરો.",
+    "addCropsNow": "હવે પાક ઉમેરો"
+  },
+  "features": {
+    "diseaseDetection": {
+      "title": "રોગ શોધ",
+      "description": "તમારા પાકનો ફોટો અપલોડ કરો અને સારવારની ભલામણો સાથે તાત્કાલિક AI-સંચાલિત રોગ ઓળખ મેળવો.",
+      "aiPowered": "AI-સંચાલિત"
+    },
+    "weather": {
+      "title": "હવામાન આગાહી",
+      "description": "તમારા વિસ્તાર માટે ચોક્કસ 7-દિવસીય હવામાન આગાહી, ખેતી સલાહ અને ગંભીર હવામાન અલર્ટ મેળવો.",
+      "sevenDay": "7-દિવસીય આગાહી",
+      "pincodeBased": "પિનકોડ આધારિત"
+    },
+    "apmc": {
+      "title": "APMC ભાવ",
+      "description": "વિવિધ APMC માં રીઅલ-ટાઈમ કોમોડિટી ભાવોની સરખામણી કરો, શ્રેષ્ઠ વેચાણ બજાર શોધો અને ભાવ વલણો ટ્રેક કરો.",
+      "livePrices": "લાઇવ ભાવ"
+    },
+    "schemes": {
+      "title": "સરકારી યોજનાઓ",
+      "description": "લાભો, પાત્રતા અને અરજી પ્રક્રિયાની સંપૂર્ણ વિગતો સાથે રાષ્ટ્રીય અને રાજ્ય-વિશિષ્ટ યોજનાઓ શોધો."
+    }
+  },
+  "auth": {
+    "login": "લૉગિન",
+    "signup": "સાઇન અપ",
+    "logout": "લૉગઆઉટ",
+    "email": "ઈમેલ",
+    "password": "પાસવર્ડ",
+    "confirmPassword": "પાસવર્ડની પુષ્ટિ કરો",
+    "name": "પૂરું નામ",
+    "phone": "ફોન નંબર",
+    "forgotPassword": "પાસવર્ડ ભૂલી ગયા?",
+    "noAccount": "એકાઉન્ટ નથી?",
+    "hasAccount": "પહેલેથી એકાઉન્ટ છે?",
+    "loginSuccess": "લૉગિન સફળ",
+    "signupSuccess": "એકાઉન્ટ સફળતાપૂર્વક બનાવ્યું",
+    "logoutSuccess": "સફળતાપૂર્વક લૉગઆઉટ થયું"
+  },
+  "profile": {
+    "title": "મારી પ્રોફાઇલ",
+    "personalInfo": "વ્યક્તિગત માહિતી",
+    "farmDetails": "ખેતર વિગતો",
+    "crops": "મારા પાક",
+    "location": "સ્થાન",
+    "pincode": "પિનકોડ",
+    "state": "રાજ્ય",
+    "district": "જિલ્લો",
+    "landSize": "જમીનનું કદ (એકરમાં)",
+    "addCrop": "પાક ઉમેરો",
+    "removeCrop": "પાક દૂર કરો",
+    "updateProfile": "પ્રોફાઇલ અપડેટ કરો",
+    "profileUpdated": "પ્રોફાઇલ સફળતાપૂર્વક અપડેટ થઈ"
+  },
+  "disease": {
+    "title": "રોગ શોધ",
+    "uploadImage": "છબી અપલોડ કરો",
+    "takePhoto": "ફોટો લો",
+    "selectCrop": "પાક પ્રકાર પસંદ કરો",
+    "analyzing": "વિશ્લેષણ થઈ રહ્યું છે...",
+    "result": "શોધ પરિણામ",
+    "disease": "રોગ",
+    "confidence": "વિશ્વાસ સ્તર",
+    "treatment": "સારવાર",
+    "prevention": "નિવારણ",
+    "noDisease": "કોઈ રોગ મળ્યો નથી",
+    "healthyCrop": "તમારો પાક સ્વસ્થ દેખાય છે",
+    "uploadPrompt": "ચોક્કસ શોધ માટે અસરગ્રસ્ત છોડના પાંદડાનો સ્પષ્ટ ફોટો અપલોડ કરો"
+  },
+  "weather": {
+    "title": "હવામાન આગાહી",
+    "currentWeather": "વર્તમાન હવામાન",
+    "weeklyForecast": "સાપ્તાહિક આગાહી",
+    "farmingAdvice": "ખેતી સલાહ",
+    "alerts": "હવામાન અલર્ટ",
+    "temperature": "તાપમાન",
+    "humidity": "ભેજ",
+    "wind": "પવન",
+    "rain": "વરસાદ",
+    "sunrise": "સૂર્યોદય",
+    "sunset": "સૂર્યાસ્ત",
+    "feelsLike": "લાગે છે",
+    "enterPincode": "તમારો પિનકોડ દાખલ કરો",
+    "getWeather": "હવામાન જુઓ",
+    "noAlerts": "કોઈ હવામાન અલર્ટ નથી"
+  },
+  "apmc": {
+    "title": "APMC બજાર ભાવ",
+    "selectCommodity": "કોમોડિટી પસંદ કરો",
+    "selectState": "રાજ્ય પસંદ કરો",
+    "selectMarket": "બજાર પસંદ કરો",
+    "minPrice": "ન્યૂનતમ ભાવ",
+    "maxPrice": "મહત્તમ ભાવ",
+    "modalPrice": "મોડલ ભાવ",
+    "pricePerQuintal": "ક્વિન્ટલ દીઠ ભાવ",
+    "bestMarket": "શ્રેષ્ઠ બજાર",
+    "priceAlerts": "ભાવ અલર્ટ",
+    "createAlert": "અલર્ટ બનાવો",
+    "sellAdvisory": "વેચાણ સલાહ",
+    "noData": "કોઈ ભાવ ડેટા ઉપલબ્ધ નથી"
+  },
+  "schemes": {
+    "title": "સરકારી યોજનાઓ",
+    "nationalSchemes": "રાષ્ટ્રીય યોજનાઓ",
+    "stateSchemes": "રાજ્ય યોજનાઓ",
+    "eligibility": "પાત્રતા",
+    "benefits": "લાભો",
+    "howToApply": "અરજી કેવી રીતે કરવી",
+    "documents": "જરૂરી દસ્તાવેજો",
+    "deadline": "અરજીની છેલ્લી તારીખ",
+    "website": "સત્તાવાર વેબસાઇટ",
+    "applyNow": "હમણાં અરજી કરો",
+    "noSchemes": "કોઈ યોજના મળી નથી"
+  },
+  "voice": {
+    "title": "વૉઇસ આસિસ્ટન્ટ",
+    "listening": "સાંભળી રહ્યું છે...",
+    "processing": "પ્રોસેસ થઈ રહ્યું છે...",
+    "speak": "હવે બોલો",
+    "tapToSpeak": "બોલવા માટે ટેપ કરો",
+    "voiceCommands": "વૉઇસ કમાન્ડ",
+    "tutorial": "વૉઇસ ટ્યુટોરિયલ"
+  },
+  "errors": {
+    "networkError": "નેટવર્ક ભૂલ. કૃપા કરીને તમારું કનેક્શન તપાસો.",
+    "serverError": "સર્વર ભૂલ. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો.",
+    "invalidInput": "અમાન્ય ઇનપુટ. કૃપા કરીને તમારી એન્ટ્રીઓ તપાસો.",
+    "sessionExpired": "સત્ર સમાપ્ત થયું. કૃપા કરીને ફરીથી લૉગિન કરો.",
+    "permissionDenied": "પરવાનગી નકારી.",
+    "notFound": "સંસાધન મળ્યું નથી."
+  },
+  "footer": {
+    "copyright": "કૃષિનીતિ. સર્વાધિકાર સુરક્ષિત.",
+    "madeWith": "ભારતીય ખેડૂતો માટે પ્રેમથી બનાવેલું"
+  }
+}

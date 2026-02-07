@@ -5,7 +5,9 @@
  * Hidden on desktop via className prop (default usage in Layout).
  */
 
+import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import PropTypes from "prop-types";
 import {
   HomeIcon,
@@ -23,51 +25,53 @@ import {
 } from "@heroicons/react/24/solid";
 import { ROUTES } from "@utils/constants";
 
-const NAV_ITEMS = [
-  {
-    label: "Home",
-    path: ROUTES.HOME,
-    Icon: HomeIcon,
-    ActiveIcon: HomeIconSolid,
-  },
-  {
-    label: "Disease",
-    path: ROUTES.DISEASE_DETECTION,
-    Icon: CameraIcon,
-    ActiveIcon: CameraIconSolid,
-  },
-  {
-    label: "Weather",
-    path: ROUTES.WEATHER,
-    Icon: CloudIcon,
-    ActiveIcon: CloudIconSolid,
-  },
-  {
-    label: "APMC",
-    path: ROUTES.APMC,
-    Icon: CurrencyRupeeIcon,
-    ActiveIcon: CurrencyRupeeIconSolid,
-  },
-  {
-    label: "Schemes",
-    path: ROUTES.SCHEMES,
-    Icon: DocumentTextIcon,
-    ActiveIcon: DocumentTextIconSolid,
-  },
-];
-
 function BottomNav({ className = "" }) {
+  const { t } = useTranslation();
   const location = useLocation();
+
+  const NAV_ITEMS = useMemo(() => [
+    {
+      labelKey: "nav.home",
+      path: ROUTES.HOME,
+      Icon: HomeIcon,
+      ActiveIcon: HomeIconSolid,
+    },
+    {
+      labelKey: "nav.diseaseDetection",
+      path: ROUTES.DISEASE_DETECTION,
+      Icon: CameraIcon,
+      ActiveIcon: CameraIconSolid,
+    },
+    {
+      labelKey: "nav.weather",
+      path: ROUTES.WEATHER,
+      Icon: CloudIcon,
+      ActiveIcon: CloudIconSolid,
+    },
+    {
+      labelKey: "nav.apmcPrice",
+      path: ROUTES.APMC,
+      Icon: CurrencyRupeeIcon,
+      ActiveIcon: CurrencyRupeeIconSolid,
+    },
+    {
+      labelKey: "nav.schemes",
+      path: ROUTES.SCHEMES,
+      Icon: DocumentTextIcon,
+      ActiveIcon: DocumentTextIconSolid,
+    },
+  ], []);
 
   return (
     <nav
-      className={`fixed bottom-0 inset-x-0 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur-sm safe-area-bottom ${className}`}
+      className={`fixed bottom-0 inset-x-0 z-30 border-t border-neutral-200 dark:border-neutral-700 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm safe-area-bottom ${className}`}
       aria-label="Bottom navigation"
     >
       <div className="flex items-center justify-around h-16">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path;
           const IconComponent = isActive ? item.ActiveIcon : item.Icon;
+          const label = t(item.labelKey);
 
           return (
             <Link
@@ -77,15 +81,15 @@ function BottomNav({ className = "" }) {
                 "flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-lg min-w-[4rem]",
                 "transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500",
                 isActive
-                  ? "text-primary-700"
-                  : "text-neutral-500 hover:text-neutral-700",
+                  ? "text-primary-700 dark:text-primary-400"
+                  : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
               ].join(" ")}
               aria-current={isActive ? "page" : undefined}
-              aria-label={item.label}
+              aria-label={label}
             >
               <IconComponent className="h-6 w-6" aria-hidden="true" />
-              <span className="text-[10px] font-medium leading-tight">
-                {item.label}
+              <span className="text-[10px] font-medium leading-tight truncate max-w-[4rem]">
+                {label}
               </span>
             </Link>
           );

@@ -15,7 +15,7 @@ import { VoiceButton } from "@components/voice";
 function Layout({
   children,
   language,
-  onToggleLanguage,
+  onLanguageChange,
   theme,
   onToggleTheme,
   hideHeader = false,
@@ -33,7 +33,7 @@ function Layout({
       {!hideHeader && (
         <Header
           language={language}
-          onToggleLanguage={onToggleLanguage}
+          onLanguageChange={onLanguageChange}
           theme={theme}
           onToggleTheme={onToggleTheme}
         />
@@ -58,7 +58,7 @@ function Layout({
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
   language: PropTypes.string,
-  onToggleLanguage: PropTypes.func,
+  onLanguageChange: PropTypes.func,
   theme: PropTypes.string,
   onToggleTheme: PropTypes.func,
   hideHeader: PropTypes.bool,

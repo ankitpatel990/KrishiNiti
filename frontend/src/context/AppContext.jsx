@@ -11,6 +11,7 @@
  */
 
 import { createContext, useReducer, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import storage from "@utils/storage";
 import {
   STORAGE_KEYS,
@@ -127,12 +128,16 @@ export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, null, buildInitialState);
+  const { i18n } = useTranslation();
 
-  // Persist language whenever it changes
+  // Persist language and sync with i18n whenever it changes
   useEffect(() => {
     storage.set(STORAGE_KEYS.LANGUAGE, state.language);
     document.documentElement.lang = state.language;
-  }, [state.language]);
+    if (i18n.language !== state.language) {
+      i18n.changeLanguage(state.language);
+    }
+  }, [state.language, i18n]);
 
   // Persist theme and apply dark class to <html>
   useEffect(() => {
@@ -166,9 +171,10 @@ export function AppProvider({ children }) {
     setLanguage,
 
     toggleLanguage: () => {
-      const nextLang =
-        state.language === LANGUAGES.EN ? LANGUAGES.HI : LANGUAGES.EN;
-      dispatch({ type: ACTION_TYPES.SET_LANGUAGE, payload: nextLang });
+      const langs = [LANGUAGES.EN, LANGUAGES.HI, LANGUAGES.GU];
+      const currentIndex = langs.indexOf(state.language);
+      const nextIndex = (currentIndex + 1) % langs.length;
+      dispatch({ type: ACTION_TYPES.SET_LANGUAGE, payload: langs[nextIndex] });
     },
 
     setTheme: (theme) => {

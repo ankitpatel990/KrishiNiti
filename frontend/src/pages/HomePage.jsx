@@ -9,6 +9,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   CameraIcon,
@@ -35,56 +36,55 @@ import PropTypes from "prop-types";
 // Constants
 // ---------------------------------------------------------------------------
 
-const FEATURES = [
-  {
-    key: "disease",
-    title: "Disease Detection",
-    description:
-      "Upload a photo of your crop and get instant AI-powered disease identification with treatment recommendations.",
-    route: ROUTES.DISEASE_DETECTION,
-    Icon: CameraIcon,
-    color: "primary",
-    bgClass: "bg-primary-50",
-    textClass: "text-primary-700",
-    iconBg: "bg-primary-100",
-  },
-  {
-    key: "weather",
-    title: "Weather Forecast",
-    description:
-      "Get accurate 7-day weather forecasts, farming advisories, and severe weather alerts for your area.",
-    route: ROUTES.WEATHER,
-    Icon: CloudIcon,
-    color: "accent",
-    bgClass: "bg-accent-50",
-    textClass: "text-accent-700",
-    iconBg: "bg-accent-100",
-  },
-  {
-    key: "apmc",
-    title: "APMC Price",
-    description:
-      "Compare real-time commodity prices across APMCs, find the best selling market, and track price trends.",
-    route: ROUTES.APMC,
-    Icon: CurrencyRupeeIcon,
-    color: "secondary",
-    bgClass: "bg-secondary-50",
-    textClass: "text-secondary-700",
-    iconBg: "bg-secondary-100",
-  },
-  {
-    key: "schemes",
-    title: "Government Schemes",
-    description:
-      "Explore national and state-specific schemes with complete details on benefits, eligibility, and application process.",
-    route: ROUTES.SCHEMES,
-    Icon: DocumentTextIcon,
-    color: "success",
-    bgClass: "bg-green-50",
-    textClass: "text-green-700",
-    iconBg: "bg-green-100",
-  },
-];
+function useFeatures() {
+  const { t } = useTranslation();
+  return useMemo(() => [
+    {
+      key: "disease",
+      title: t("features.diseaseDetection.title"),
+      description: t("features.diseaseDetection.description"),
+      route: ROUTES.DISEASE_DETECTION,
+      Icon: CameraIcon,
+      color: "primary",
+      bgClass: "bg-primary-50",
+      textClass: "text-primary-700",
+      iconBg: "bg-primary-100",
+    },
+    {
+      key: "weather",
+      title: t("features.weather.title"),
+      description: t("features.weather.description"),
+      route: ROUTES.WEATHER,
+      Icon: CloudIcon,
+      color: "accent",
+      bgClass: "bg-accent-50",
+      textClass: "text-accent-700",
+      iconBg: "bg-accent-100",
+    },
+    {
+      key: "apmc",
+      title: t("features.apmc.title"),
+      description: t("features.apmc.description"),
+      route: ROUTES.APMC,
+      Icon: CurrencyRupeeIcon,
+      color: "secondary",
+      bgClass: "bg-secondary-50",
+      textClass: "text-secondary-700",
+      iconBg: "bg-secondary-100",
+    },
+    {
+      key: "schemes",
+      title: t("features.schemes.title"),
+      description: t("features.schemes.description"),
+      route: ROUTES.SCHEMES,
+      Icon: DocumentTextIcon,
+      color: "success",
+      bgClass: "bg-green-50",
+      textClass: "text-green-700",
+      iconBg: "bg-green-100",
+    },
+  ], [t]);
+}
 
 const SEARCH_ROUTES = [
   { keywords: ["disease", "crop", "plant", "leaf", "detect", "photo", "scan"], route: ROUTES.DISEASE_DETECTION },
@@ -130,28 +130,29 @@ const itemVariants = {
 // ---------------------------------------------------------------------------
 
 function GreetingBanner() {
+  const { t } = useTranslation();
   const { isAuthenticated, user } = useAuth();
   const hour = new Date().getHours();
-  let greeting = "Good morning";
-  if (hour >= 12 && hour < 17) greeting = "Good afternoon";
-  else if (hour >= 17) greeting = "Good evening";
+  let greeting = t("home.greeting.morning");
+  if (hour >= 12 && hour < 17) greeting = t("home.greeting.afternoon");
+  else if (hour >= 17) greeting = t("home.greeting.evening");
 
   const firstName = user?.name?.split(" ")[0];
 
   return (
     <motion.div variants={itemVariants}>
-      <h1 className="text-3xl sm:text-4xl font-display font-bold text-neutral-900 mb-2">
+      <h1 className="text-3xl sm:text-4xl font-display font-bold text-neutral-900 dark:text-neutral-100 mb-2">
         {greeting}{isAuthenticated && firstName ? `, ${firstName}` : ""}
       </h1>
-      <p className="text-neutral-600 text-lg max-w-xl">
-        AI-powered crop disease detection, weather forecasting, and market price
-        tracking for Indian farmers.
+      <p className="text-neutral-600 dark:text-neutral-400 text-lg max-w-xl">
+        {t("home.tagline")}
       </p>
     </motion.div>
   );
 }
 
 function QuickSearch({ onSearch }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
 
   const handleSubmit = useCallback(
@@ -170,16 +171,16 @@ function QuickSearch({ onSearch }) {
       onSubmit={handleSubmit}
       className="relative max-w-lg"
       role="search"
-      aria-label="Search features"
+      aria-label={t("common.search")}
     >
       <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search features... (e.g. crop disease, weather, APMC prices)"
-        className="w-full rounded-xl border border-neutral-200 bg-white py-3 pl-11 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-        aria-label="Search"
+        placeholder={t("home.searchPlaceholder")}
+        className="w-full rounded-xl border border-neutral-200 bg-white dark:bg-neutral-800 dark:border-neutral-700 py-3 pl-11 pr-4 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+        aria-label={t("common.search")}
       />
     </motion.form>
   );
@@ -190,6 +191,7 @@ QuickSearch.propTypes = {
 };
 
 function FeatureCard({ feature }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { Icon } = feature;
 
@@ -210,11 +212,11 @@ function FeatureCard({ feature }) {
             <h3 className={`text-base font-semibold ${feature.textClass} mb-1`}>
               {feature.title}
             </h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
               {feature.description}
             </p>
-            <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary-600">
-              Get started
+            <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary-600 dark:text-primary-400">
+              {t("common.getStarted")}
               <ArrowRightIcon className="h-4 w-4" />
             </div>
           </div>
@@ -237,6 +239,8 @@ FeatureCard.propTypes = {
 };
 
 function NetworkBanner({ isOnline }) {
+  const { t } = useTranslation();
+  
   if (isOnline) return null;
 
   return (
@@ -248,13 +252,14 @@ function NetworkBanner({ isOnline }) {
     >
       <SignalSlashIcon className="h-5 w-5 text-secondary-600 shrink-0" />
       <p className="text-sm text-secondary-800">
-        You are currently offline. Some features may be limited.
+        {t("common.offline")}
       </p>
     </motion.div>
   );
 }
 
 function CropsAlertBanner() {
+  const { t } = useTranslation();
   const { isAuthenticated, user } = useAuth();
 
   // Show alert only for logged-in users without crops
@@ -271,16 +276,16 @@ function CropsAlertBanner() {
       <ExclamationTriangleIcon className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
       <div className="flex-1">
         <h3 className="text-sm font-semibold text-amber-800">
-          Complete Your Profile
+          {t("home.completeProfile")}
         </h3>
         <p className="text-sm text-amber-700 mt-1">
-          Add your crops to get personalized APMC price alerts and farming recommendations.
+          {t("home.addCropsMessage")}
         </p>
         <Link
           to={ROUTES.PROFILE}
           className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-700 hover:text-amber-900"
         >
-          Add Crops Now
+          {t("home.addCropsNow")}
           <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </div>
@@ -293,6 +298,7 @@ NetworkBanner.propTypes = {
 };
 
 function RecentActivity() {
+  const { t } = useTranslation();
   const activities = useMemo(() => getRecentActivities(8), []);
 
   if (activities.length === 0) {
@@ -301,9 +307,9 @@ function RecentActivity() {
 
   return (
     <motion.div variants={itemVariants}>
-      <h2 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
         <ClockIcon className="h-5 w-5 text-neutral-500" />
-        Recent Activity
+        {t("home.recentActivity")}
       </h2>
       <div className="space-y-2">
         {activities.map((activity) => {
@@ -338,19 +344,20 @@ function RecentActivity() {
 }
 
 function QuickStats() {
+  const { t } = useTranslation();
   const isOnline = useNetworkStatus();
 
   return (
     <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3">
       <div className="rounded-xl bg-primary-50 border border-primary-100 p-4 text-center">
         <CameraIcon className="h-6 w-6 text-primary-600 mx-auto mb-1" />
-        <p className="text-xs text-primary-700 font-medium">Disease Detection</p>
-        <p className="text-xs text-primary-500 mt-0.5">AI-powered</p>
+        <p className="text-xs text-primary-700 font-medium">{t("features.diseaseDetection.title")}</p>
+        <p className="text-xs text-primary-500 mt-0.5">{t("features.diseaseDetection.aiPowered")}</p>
       </div>
       <div className="rounded-xl bg-accent-50 border border-accent-100 p-4 text-center">
         <CloudIcon className="h-6 w-6 text-accent-600 mx-auto mb-1" />
-        <p className="text-xs text-accent-700 font-medium">7-Day Forecast</p>
-        <p className="text-xs text-accent-500 mt-0.5">Pincode-based</p>
+        <p className="text-xs text-accent-700 font-medium">{t("features.weather.sevenDay")}</p>
+        <p className="text-xs text-accent-500 mt-0.5">{t("features.weather.pincodeBased")}</p>
       </div>
       <div className="rounded-xl bg-secondary-50 border border-secondary-100 p-4 text-center">
         <div className="flex items-center justify-center gap-1 mb-1">
@@ -360,9 +367,9 @@ function QuickStats() {
             <SignalSlashIcon className="h-6 w-6 text-secondary-400" />
           )}
         </div>
-        <p className="text-xs text-secondary-700 font-medium">Live Prices</p>
+        <p className="text-xs text-secondary-700 font-medium">{t("features.apmc.livePrices")}</p>
         <p className="text-xs text-secondary-500 mt-0.5">
-          {isOnline ? "Connected" : "Offline"}
+          {isOnline ? t("common.connected") : "Offline"}
         </p>
       </div>
     </motion.div>
@@ -376,6 +383,7 @@ function QuickStats() {
 function HomePage() {
   const navigate = useNavigate();
   const isOnline = useNetworkStatus();
+  const features = useFeatures();
 
   const handleSearch = useCallback(
     (query) => {
@@ -406,7 +414,7 @@ function HomePage() {
 
       {/* Feature Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-        {FEATURES.map((feature) => (
+        {features.map((feature) => (
           <FeatureCard key={feature.key} feature={feature} />
         ))}
       </div>

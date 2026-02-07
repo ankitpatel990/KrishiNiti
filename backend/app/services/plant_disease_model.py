@@ -34,7 +34,7 @@ _Image = None
 _transforms = None
 _AutoImageProcessor = None
 _AutoModelForImageClassification = None
-_ViTFeatureExtractor = None
+_ViTImageProcessor = None
 _ViTForImageClassification = None
 
 
@@ -42,7 +42,7 @@ def _ensure_imports():
     """Import heavy ML libraries on first use."""
     global _torch, _Image, _transforms
     global _AutoImageProcessor, _AutoModelForImageClassification
-    global _ViTFeatureExtractor, _ViTForImageClassification
+    global _ViTImageProcessor, _ViTForImageClassification
 
     if _torch is not None:
         return
@@ -53,7 +53,7 @@ def _ensure_imports():
     from transformers import (
         AutoImageProcessor,
         AutoModelForImageClassification,
-        ViTFeatureExtractor,
+        ViTImageProcessor,
         ViTForImageClassification,
     )
 
@@ -62,7 +62,7 @@ def _ensure_imports():
     _transforms = transforms
     _AutoImageProcessor = AutoImageProcessor
     _AutoModelForImageClassification = AutoModelForImageClassification
-    _ViTFeatureExtractor = ViTFeatureExtractor
+    _ViTImageProcessor = ViTImageProcessor
     _ViTForImageClassification = ViTForImageClassification
 
 
@@ -206,7 +206,7 @@ def _load_vit():
     logger.info("Loading ViT model: %s", VIT_MODEL_ID)
     start = time.perf_counter()
     try:
-        _vit_processor = _ViTFeatureExtractor.from_pretrained(VIT_MODEL_ID)
+        _vit_processor = _ViTImageProcessor.from_pretrained(VIT_MODEL_ID)
         _vit_model = _ViTForImageClassification.from_pretrained(
             VIT_MODEL_ID, ignore_mismatched_sizes=True
         )

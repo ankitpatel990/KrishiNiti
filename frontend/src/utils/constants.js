@@ -9,8 +9,9 @@
 // API
 // ---------------------------------------------------------------------------
 
+// Use nullish coalescing to allow empty string as valid value (same-origin API)
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 export const API_PREFIX = "/api";
 

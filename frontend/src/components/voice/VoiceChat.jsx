@@ -368,13 +368,32 @@ function VoiceChat({ isOpen, onClose, language }) {
           }
 
           if (aiResult.navigate_to) {
-            navigate(aiResult.navigate_to);
+            const routeState = { fromVoice: true };
+            const entities = localResult.entities || {};
+            if (entities.crops && entities.crops.length > 0) {
+              routeState.commodity = entities.crops[0];
+            }
+            if (aiResult.data?.commodity) {
+              routeState.commodity = aiResult.data.commodity;
+            }
+            if (location && location.taluka) {
+              routeState.location = location;
+            }
+            navigate(aiResult.navigate_to, { state: routeState });
           }
         })
         .catch(() => {
           // Fallback: use local response if backend fails
           if (localResult.action === ACTIONS.NAVIGATE && localResult.route) {
-            navigate(localResult.route);
+            const routeState = { fromVoice: true };
+            const entities = localResult.entities || {};
+            if (entities.crops && entities.crops.length > 0) {
+              routeState.commodity = entities.crops[0];
+            }
+            if (location && location.taluka) {
+              routeState.location = location;
+            }
+            navigate(localResult.route, { state: routeState });
           }
           if (voiceSettings.autoSpeak && localResult.response) {
             speak(localResult.response, lang, voiceSettings).catch(() => {});

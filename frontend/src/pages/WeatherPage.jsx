@@ -10,6 +10,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useLocation as useRouterLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
 import {
@@ -31,6 +32,7 @@ import {
   Select,
 } from "@components/common";
 import useApp from "@hooks/useApp";
+import useLocation from "@hooks/useLocation";
 import api, { API_V1 } from "@services/api";
 import { getForecast, getAlerts } from "@services/weatherApi";
 import { SUPPORTED_CROPS, WEATHER_CACHE_DURATION_MS } from "@utils/constants";
@@ -136,8 +138,17 @@ FarmingAdviceSection.propTypes = {
 // WeatherPage
 // ---------------------------------------------------------------------------
 
+/** Default location used when no user location is set. */
+const DEFAULT_WEATHER_LOCATION = {
+  state: "Gujarat",
+  district: "Rajkot",
+  taluka: "Jetpur",
+};
+
 function WeatherPage() {
   const { language } = useApp();
+  const locationCtx = useLocation();
+  const routerLocation = useRouterLocation();
 
   // Active location (the one for which data is displayed)
   const [activeLocation, setActiveLocation] = useState(null);
@@ -156,6 +167,7 @@ function WeatherPage() {
   const [lastRefresh, setLastRefresh] = useState(null);
 
   const requestIdRef = useRef(0);
+  const voiceAutoFetchDone = useRef(false);
 
   // -------------------------------------------------------------------
   // Fetch weather data (cache-first)
@@ -232,6 +244,34 @@ function WeatherPage() {
     },
     [fetchWeatherData],
   );
+
+  // Auto-fetch weather when navigated from voice assistant or if user has saved location
+  useEffect(() => {
+    if (voiceAutoFetchDone.current || activeLocation) return;
+    voiceAutoFetchDone.current = true;
+
+    // Priority 1: Route state from voice navigation
+    const voiceLocation = routerLocation.state?.location;
+    if (voiceLocation && voiceLocation.taluka) {
+      fetchWeatherData(voiceLocation);
+      return;
+    }
+
+    // Priority 2: User's saved location from LocationContext
+    if (locationCtx.hasLocation) {
+      fetchWeatherData({
+        state: locationCtx.state,
+        district: locationCtx.district,
+        taluka: locationCtx.taluka,
+      });
+      return;
+    }
+
+    // Priority 3: If navigated via voice (fromVoice flag), use default
+    if (routerLocation.state?.fromVoice) {
+      fetchWeatherData(DEFAULT_WEATHER_LOCATION);
+    }
+  }, [routerLocation.state, locationCtx, activeLocation, fetchWeatherData]);
 
   const handleRefresh = useCallback(() => {
     if (activeLocation) {

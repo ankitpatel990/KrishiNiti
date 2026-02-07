@@ -72,6 +72,32 @@ const DATA_INTENTS = new Set([
   INTENTS.BEST_APMC,
 ]);
 
+/**
+ * Build route state to pass entity data to target pages.
+ * This enables auto-filling search fields and triggering data fetches.
+ */
+function _buildRouteState(parsedResult, aiResult, userLocation) {
+  const state = { fromVoice: true };
+  const entities = parsedResult?.entities || {};
+
+  // Pass commodity for APMC page
+  if (entities.crops && entities.crops.length > 0) {
+    state.commodity = entities.crops[0];
+  }
+
+  // Pass location for weather page
+  if (userLocation && userLocation.taluka) {
+    state.location = userLocation;
+  }
+
+  // Also extract commodity from backend response if available
+  if (aiResult?.data?.commodity) {
+    state.commodity = aiResult.data.commodity;
+  }
+
+  return state;
+}
+
 function VoiceButton({ className = "" }) {
   const navigate = useNavigate();
   const { language } = useApp();
@@ -150,16 +176,19 @@ function VoiceButton({ className = "" }) {
             speak(aiResult.response, language, settings).catch(() => {});
           }
 
-          // Navigate after speaking if a route is suggested
-          if (aiResult.navigate_to) {
-            navigate(aiResult.navigate_to);
+          // Navigate with entity data as route state
+          const targetRoute = aiResult.navigate_to || result.route;
+          if (targetRoute) {
+            const routeState = _buildRouteState(result, aiResult, location);
+            navigate(targetRoute, { state: routeState });
           }
         })
         .catch(() => {
           // Fallback: navigate and speak the basic response
           setCommandResult(result);
           if (result.route) {
-            navigate(result.route);
+            const routeState = _buildRouteState(result, null, location);
+            navigate(result.route, { state: routeState });
           }
           const settings = getVoiceSettings();
           if (settings.autoSpeak) {

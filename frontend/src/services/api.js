@@ -37,7 +37,7 @@ export const API_V1 = "/api/v1";
 /** @param {string} path - Path starting with /api/v1/... */
 export function apiUrl(path) {
   if (path.startsWith("http")) return path;
-  if (isDev) return path;
+  if (isDev || !API_BASE_URL) return path;
   return `${API_BASE_URL}${path}`;
 }
 

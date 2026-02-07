@@ -18,6 +18,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useLocation as useRouterLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import {
   BuildingStorefrontIcon,
@@ -59,6 +60,7 @@ const INITIAL_FILTERS = {
 function APMCPricePage() {
   const { language } = useApp();
   const { location } = useLocation();
+  const routerLocation = useRouterLocation();
 
   // Data state
   const [commodities, setCommodities] = useState([]);
@@ -74,6 +76,7 @@ function APMCPricePage() {
   const [error, setError] = useState(null);
 
   const requestIdRef = useRef(0);
+  const voiceAutoSearchDone = useRef(false);
 
   // Fetch commodities on mount
   useEffect(() => {
@@ -212,6 +215,17 @@ function APMCPricePage() {
     },
     [fetchPriceData],
   );
+
+  // Auto-search when navigated from voice assistant with a commodity
+  useEffect(() => {
+    const voiceCommodity = routerLocation.state?.commodity;
+    if (voiceCommodity && !voiceAutoSearchDone.current) {
+      voiceAutoSearchDone.current = true;
+      setSelectedCommodity(voiceCommodity);
+      setFilters(INITIAL_FILTERS);
+      fetchPriceData(voiceCommodity);
+    }
+  }, [routerLocation.state, fetchPriceData]);
 
   const handleRefresh = useCallback(() => {
     if (selectedCommodity) {

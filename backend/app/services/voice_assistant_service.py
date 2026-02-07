@@ -99,8 +99,8 @@ def _build_weather_context(forecast_data: Dict[str, Any], time_ref: Optional[str
     return "\n".join(lines)
 
 
-def _build_apmc_context(prices_data: Dict[str, Any]) -> str:
-    """Build APMC price context string from API response."""
+def _build_mandi_context(prices_data: Dict[str, Any]) -> str:
+    """Build mandi/APMC price context string from API response."""
     records = prices_data.get("records", [])
     if not records:
         return "No price data available."
@@ -127,7 +127,7 @@ def _detect_intent(message: str) -> str:
         "tomorrow", "today", "next week", "this week",
         "मौसम", "बारिश", "तापमान", "कल", "आज",
     ]
-    apmc_keywords = [
+    mandi_keywords = [
         "price", "mandi", "apmc", "market", "cost", "rate", "sell",
         "भाव", "मंडी", "दाम", "कीमत", "बेच",
     ]
@@ -138,12 +138,58 @@ def _detect_intent(message: str) -> str:
 
     if any(kw in lower for kw in weather_keywords):
         return "weather"
-    if any(kw in lower for kw in apmc_keywords):
-        return "apmc"
+    if any(kw in lower for kw in mandi_keywords):
+        return "mandi"
     if any(kw in lower for kw in disease_keywords):
         return "disease"
 
     return "general"
+
+
+# Commodity names the system can extract from voice queries
+_COMMODITY_NAMES = [
+    "wheat", "paddy", "rice", "cotton", "sugarcane", "tomato", "potato",
+    "onion", "chilli", "maize", "corn", "pulses", "oilseeds", "millets",
+    "groundnut", "cumin", "soybean", "mustard", "bajra", "jowar", "ragi",
+    "barley", "gram", "tur", "moong", "urad", "masoor", "arhar",
+]
+
+_COMMODITY_HI_MAP = {
+    "गेहूं": "Wheat",
+    "धान": "Paddy",
+    "चावल": "Paddy",
+    "कपास": "Cotton",
+    "गन्ना": "Sugarcane",
+    "टमाटर": "Tomato",
+    "आलू": "Potato",
+    "प्याज": "Onion",
+    "मिर्च": "Chilli",
+    "मक्का": "Maize",
+    "दालें": "Pulses",
+    "दाल": "Pulses",
+    "तिलहन": "Oilseeds",
+    "बाजरा": "Millets",
+    "ज्वार": "Millets",
+    "मूंगफली": "Groundnut",
+    "जीरा": "Cumin",
+    "सोयाबीन": "Soybean",
+    "सरसों": "Mustard",
+}
+
+
+def _extract_commodity(message: str) -> Optional[str]:
+    """Extract a commodity/crop name from the user message."""
+    lower = message.lower()
+
+    for name in _COMMODITY_NAMES:
+        if name in lower:
+            return name.capitalize()
+
+    for hindi, english in _COMMODITY_HI_MAP.items():
+        if hindi in message:
+            return english
+
+    return None
 
 
 def _detect_time_ref(message: str) -> Optional[str]:
@@ -282,6 +328,7 @@ async def process_voice_query(
     loc = location if location and location.get("taluka") else DEFAULT_LOCATION
     intent = _detect_intent(message)
     time_ref = _detect_time_ref(message)
+    commodity = _extract_commodity(message)
     context_parts = [f"User message: {message}"]
     navigate_to = None
     fetched_data = None
@@ -305,20 +352,29 @@ async def process_voice_query(
             )
             navigate_to = "/weather"
 
-    elif intent == "apmc":
-        # Try to extract commodity from the message
-        prices = await _fetch_apmc_prices()
+    elif intent == "mandi":
+        # Fetch prices, optionally filtered by commodity
+        prices = await _fetch_mandi_prices(commodity=commodity)
         if prices:
-            apmc_ctx = _build_apmc_context(prices)
-            context_parts.append(f"\n{apmc_ctx}")
+            mandi_ctx = _build_mandi_context(prices)
+            context_parts.append(f"\n{mandi_ctx}")
+            if commodity:
+                context_parts.append(f"\nUser is specifically asking about: {commodity}")
             navigate_to = "/apmc"
-            fetched_data = {"type": "apmc"}
+            fetched_data = {
+                "type": "mandi",
+                "commodity": commodity,
+            }
         else:
             context_parts.append(
-                "\nAPMC price data is currently unavailable. "
+                "\nMandi price data is currently unavailable. "
                 "Suggest the user check the APMC prices page."
             )
             navigate_to = "/apmc"
+            fetched_data = {
+                "type": "mandi",
+                "commodity": commodity,
+            }
 
     elif intent == "disease":
         context_parts.append(
@@ -357,7 +413,7 @@ async def process_voice_query(
             "en": f"I could not fetch the weather details right now. Please check the weather page for {loc.get('taluka', 'your area')}.",
             "hi": f"अभी मौसम की जानकारी नहीं मिल पाई। कृपया {loc.get('taluka', 'अपने क्षेत्र')} का मौसम पेज देखें।",
         },
-        "apmc": {
+        "mandi": {
             "en": "I could not fetch the APMC prices right now. Please check the APMC prices page.",
             "hi": "अभी APMC भाव नहीं मिल पाए। कृपया APMC भाव पेज देखें।",
         },

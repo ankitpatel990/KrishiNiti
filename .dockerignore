@@ -1,0 +1,35 @@
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+.idea
+*.md
+!backend/README.md
+!frontend/README.md
+
+# Python
+backend/venv
+backend/.venv
+backend/__pycache__
+backend/**/__pycache__
+backend/**/*.pyc
+backend/.env
+backend/.pytest_cache
+backend/htmlcov
+backend/.coverage
+backend/*.db
+backend/logs
+
+# Node
+frontend/node_modules
+frontend/dist
+frontend/.env
+frontend/.env.local
+frontend/npm-debug.log*
+frontend/.eslintcache
+
+# Misc
+*.log
+.DS_Store
+.github

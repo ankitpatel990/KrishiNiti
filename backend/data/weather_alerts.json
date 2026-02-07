@@ -1,0 +1,120 @@
+[
+  {
+    "alert_type": "dry_spell",
+    "severity": "warning",
+    "title": "Dry Spell Alert",
+    "title_hindi": "सूखे की चेतावनी",
+    "description": "No significant rainfall expected for the next 7 days. Consider irrigation scheduling.",
+    "description_hindi": "अगले 7 दिनों में कोई महत्वपूर्ण वर्षा की उम्मीद नहीं है। सिंचाई अनुसूची पर विचार करें।",
+    "recommendation": "Schedule irrigation immediately. Use water-efficient methods like drip irrigation. Monitor soil moisture levels daily.",
+    "recommendation_hindi": "तुरंत सिंचाई का समय निर्धारित करें। ड्रिप सिंचाई जैसी जल-कुशल विधियों का उपयोग करें। दैनिक मिट्टी की नमी के स्तर की निगरानी करें।",
+    "threshold_days": 7,
+    "affected_crops": ["Paddy", "Wheat", "Cotton", "Sugarcane", "Vegetables"]
+  },
+  {
+    "alert_type": "heavy_rain",
+    "severity": "danger",
+    "title": "Heavy Rainfall Alert",
+    "title_hindi": "भारी वर्षा चेतावनी",
+    "description": "Heavy rainfall (>50mm) expected in next 24 hours. Risk of waterlogging and crop damage.",
+    "description_hindi": "अगले 24 घंटों में भारी वर्षा (>50mm) की उम्मीद है। जलभराव और फसल क्षति का खतरा।",
+    "recommendation": "Ensure proper drainage. Harvest mature crops if possible. Protect stored grains from moisture. Avoid field operations during heavy rain.",
+    "recommendation_hindi": "उचित जल निकासी सुनिश्चित करें। यदि संभव हो तो परिपक्व फसलों की कटाई करें। संग्रहीत अनाज को नमी से बचाएं। भारी बारिश के दौरान खेत के काम से बचें।",
+    "threshold_mm": 50,
+    "affected_crops": ["Paddy", "Wheat", "Cotton", "Vegetables"]
+  },
+  {
+    "alert_type": "heat_stress",
+    "severity": "warning",
+    "title": "Heat Stress Alert",
+    "title_hindi": "गर्मी के तनाव की चेतावनी",
+    "description": "High temperature (>40°C) expected for 3+ consecutive days. Risk of heat stress and reduced yields.",
+    "description_hindi": "3+ लगातार दिनों के लिए उच्च तापमान (>40°C) की उम्मीद है। गर्मी के तनाव और कम उपज का खतरा।",
+    "recommendation": "Increase irrigation frequency. Apply mulch to conserve soil moisture. Provide shade for sensitive crops. Avoid field work during peak hours (11 AM - 4 PM).",
+    "recommendation_hindi": "सिंचाई की आवृत्ति बढ़ाएं। मिट्टी की नमी बनाए रखने के लिए मल्च लगाएं। संवेदनशील फसलों के लिए छाया प्रदान करें। चरम घंटों (11 AM - 4 PM) के दौरान खेत के काम से बचें।",
+    "threshold_temp": 40,
+    "threshold_days": 3,
+    "affected_crops": ["Wheat", "Cotton", "Vegetables"]
+  },
+  {
+    "alert_type": "cold_wave",
+    "severity": "warning",
+    "title": "Cold Wave Alert",
+    "title_hindi": "शीत लहर चेतावनी",
+    "description": "Cold wave conditions (<10°C) expected. Risk of frost damage to sensitive crops.",
+    "description_hindi": "शीत लहर की स्थिति (<10°C) की उम्मीद है। संवेदनशील फसलों को पाला क्षति का खतरा।",
+    "recommendation": "Cover sensitive crops with protective sheets. Use smoke or fogging to prevent frost. Harvest mature crops before cold wave. Provide irrigation to protect from frost.",
+    "recommendation_hindi": "संवेदनशील फसलों को सुरक्षात्मक चादरों से ढकें। पाला रोकने के लिए धुआं या फॉगिंग का उपयोग करें। शीत लहर से पहले परिपक्व फसलों की कटाई करें। पाला से बचाने के लिए सिंचाई प्रदान करें।",
+    "threshold_temp": 10,
+    "affected_crops": ["Wheat", "Vegetables", "Potato", "Tomato"]
+  },
+  {
+    "alert_type": "frost_risk",
+    "severity": "danger",
+    "title": "Frost Risk Alert",
+    "title_hindi": "पाला जोखिम चेतावनी",
+    "description": "Frost conditions (<5°C) expected. High risk of crop damage, especially for sensitive vegetables.",
+    "description_hindi": "पाला की स्थिति (<5°C) की उम्मीद है। फसल क्षति का उच्च जोखिम, विशेष रूप से संवेदनशील सब्जियों के लिए।",
+    "recommendation": "Immediate action required. Cover crops with plastic sheets or cloth. Use heaters or smoke generators in orchards. Harvest all mature crops immediately. Irrigate fields in evening to protect from frost.",
+    "recommendation_hindi": "तत्काल कार्रवाई आवश्यक। फसलों को प्लास्टिक की चादर या कपड़े से ढकें। बागों में हीटर या धुआं जनरेटर का उपयोग करें। सभी परिपक्व फसलों को तुरंत काटें। पाला से बचाने के लिए शाम को खेतों में सिंचाई करें।",
+    "threshold_temp": 5,
+    "affected_crops": ["Vegetables", "Potato", "Tomato", "Onion"]
+  },
+  {
+    "alert_type": "high_humidity",
+    "severity": "info",
+    "title": "High Humidity Alert",
+    "title_hindi": "उच्च आर्द्रता चेतावनी",
+    "description": "High humidity (>80%) expected. Increased risk of fungal diseases.",
+    "description_hindi": "उच्च आर्द्रता (>80%) की उम्मीद है। फंगल रोगों का बढ़ा जोखिम।",
+    "recommendation": "Apply preventive fungicides. Ensure good air circulation. Avoid overhead irrigation. Monitor crops for early disease symptoms.",
+    "recommendation_hindi": "निवारक कवकनाशी लगाएं। अच्छे वायु परिसंचरण को सुनिश्चित करें। ओवरहेड सिंचाई से बचें। प्रारंभिक रोग लक्षणों के लिए फसलों की निगरानी करें।",
+    "threshold_humidity": 80,
+    "affected_crops": ["Paddy", "Wheat", "Cotton", "Vegetables"]
+  },
+  {
+    "alert_type": "strong_winds",
+    "severity": "warning",
+    "title": "Strong Winds Alert",
+    "title_hindi": "तेज हवाओं की चेतावनी",
+    "description": "Strong winds (>40 km/h) expected. Risk of lodging and physical damage to crops.",
+    "description_hindi": "तेज हवाएं (>40 km/h) की उम्मीद है। फसलों को झुकने और शारीरिक क्षति का खतरा।",
+    "recommendation": "Support tall crops with stakes. Harvest mature crops before strong winds. Secure greenhouses and structures. Avoid field operations during high winds.",
+    "recommendation_hindi": "लंबी फसलों को खूंटे से सहारा दें। तेज हवाओं से पहले परिपक्व फसलों की कटाई करें। ग्रीनहाउस और संरचनाओं को सुरक्षित करें। तेज हवाओं के दौरान खेत के काम से बचें।",
+    "threshold_wind": 40,
+    "affected_crops": ["Paddy", "Wheat", "Cotton", "Sugarcane"]
+  },
+  {
+    "alert_type": "optimal_conditions",
+    "severity": "info",
+    "title": "Optimal Weather Conditions",
+    "title_hindi": "इष्टतम मौसम की स्थिति",
+    "description": "Favorable weather conditions for crop growth. Good time for field operations and spraying.",
+    "description_hindi": "फसल वृद्धि के लिए अनुकूल मौसम की स्थिति। खेत के काम और छिड़काव के लिए अच्छा समय।",
+    "recommendation": "Proceed with planned field operations. Good time for fertilizer application and pest control. Monitor crops regularly.",
+    "recommendation_hindi": "नियोजित खेत के काम आगे बढ़ाएं। उर्वरक अनुप्रयोग और कीट नियंत्रण के लिए अच्छा समय। नियमित रूप से फसलों की निगरानी करें।",
+    "affected_crops": ["All"]
+  },
+  {
+    "alert_type": "irrigation_needed",
+    "severity": "info",
+    "title": "Irrigation Recommended",
+    "title_hindi": "सिंचाई की सिफारिश",
+    "description": "Soil moisture levels are low. Irrigation recommended to maintain optimal growth.",
+    "description_hindi": "मिट्टी की नमी का स्तर कम है। इष्टतम वृद्धि बनाए रखने के लिए सिंचाई की सिफारिश की जाती है।",
+    "recommendation": "Schedule irrigation within 24-48 hours. Use water-efficient methods. Monitor soil moisture after irrigation.",
+    "recommendation_hindi": "24-48 घंटों के भीतर सिंचाई का समय निर्धारित करें। जल-कुशल विधियों का उपयोग करें। सिंचाई के बाद मिट्टी की नमी की निगरानी करें।",
+    "affected_crops": ["Paddy", "Wheat", "Cotton", "Sugarcane", "Vegetables"]
+  },
+  {
+    "alert_type": "harvest_timing",
+    "severity": "info",
+    "title": "Optimal Harvest Timing",
+    "title_hindi": "इष्टतम कटाई का समय",
+    "description": "Weather conditions are favorable for harvesting. Dry weather expected for next few days.",
+    "description_hindi": "कटाई के लिए मौसम की स्थिति अनुकूल है। अगले कुछ दिनों के लिए शुष्क मौसम की उम्मीद है।",
+    "recommendation": "Plan harvesting operations. Ensure proper storage facilities are ready. Harvest during dry weather to avoid moisture damage.",
+    "recommendation_hindi": "कटाई के काम की योजना बनाएं। उचित भंडारण सुविधाएं तैयार हैं सुनिश्चित करें। नमी की क्षति से बचने के लिए शुष्क मौसम के दौरान कटाई करें।",
+    "affected_crops": ["Wheat", "Paddy", "Cotton", "Sugarcane"]
+  }
+]

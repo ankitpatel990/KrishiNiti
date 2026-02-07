@@ -1,10 +1,13 @@
 ---
-title: My Cool App
-emoji: 🚀
-colorFrom: blue
-colorTo: pink
-sdk: gradio  # or streamlit, docker, static
-sdk_version: 4.1.1
-app_file: app.py
+title: FarmHelp
+emoji: 🌾
+colorFrom: green
+colorTo: yellow
+sdk: docker
+app_port: 7860
 pinned: false
 ---
+
+# FarmHelp
+
+AI-powered farm decision support for Indian smallholder farmers: disease treatment recommendations, weather forecasts, mandi price intelligence, and farming advisories.

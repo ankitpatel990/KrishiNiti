@@ -339,6 +339,126 @@ async def refresh_prices_from_api(
 
 
 # ---------------------------------------------------------------------------
+# API-First Price Fetching
+# ---------------------------------------------------------------------------
+
+async def get_prices_from_api(
+    commodity: Optional[str] = None,
+    state: Optional[str] = None,
+    district: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> Optional[Dict[str, Any]]:
+    """
+    Fetch prices directly from data.gov.in API.
+    
+    Always attempts to get live data from the API first.
+    Returns None if API is unavailable, allowing caller to fallback.
+    
+    Args:
+        commodity: Filter by commodity name
+        state: Filter by state name
+        district: Filter by district name
+        min_price: Minimum price filter
+        max_price: Maximum price filter
+        limit: Number of records to return
+        offset: Pagination offset
+        
+    Returns:
+        Dict with prices and metadata, or None if API unavailable.
+    """
+    if not settings.DATA_GOV_IN_API_KEY:
+        logger.debug("data.gov.in API key not configured; cannot fetch from API")
+        return None
+    
+    # Request more records from API to account for filtering
+    api_limit = min(limit + offset + 200, 500)
+    
+    api_records = await fetch_from_data_gov(
+        commodity=commodity,
+        state=state,
+        limit=api_limit,
+    )
+    
+    if api_records is None:
+        return None
+    
+    # Apply additional filters that the API doesn't support
+    filtered_records = api_records
+    
+    if district:
+        filtered_records = [
+            r for r in filtered_records
+            if r.get("district", "").lower() == district.lower()
+        ]
+    
+    if min_price is not None:
+        filtered_records = [
+            r for r in filtered_records
+            if r.get("price_per_quintal", 0) >= min_price
+        ]
+    
+    if max_price is not None:
+        filtered_records = [
+            r for r in filtered_records
+            if r.get("price_per_quintal", 0) <= max_price
+        ]
+    
+    # Sort by arrival_date descending, then price descending
+    filtered_records.sort(
+        key=lambda x: (
+            x.get("arrival_date") or datetime.min.replace(tzinfo=timezone.utc),
+            x.get("price_per_quintal", 0),
+        ),
+        reverse=True,
+    )
+    
+    total = len(filtered_records)
+    
+    # Apply pagination
+    paginated = filtered_records[offset:offset + limit]
+    
+    # Format response
+    price_dicts = [
+        {
+            "id": None,  # API records don't have DB IDs
+            "commodity": r.get("commodity", ""),
+            "mandi_name": r.get("mandi_name", ""),
+            "state": r.get("state", ""),
+            "district": r.get("district", ""),
+            "price_per_quintal": r.get("price_per_quintal", 0),
+            "min_price": r.get("min_price", 0),
+            "max_price": r.get("max_price", 0),
+            "modal_price": r.get("modal_price", 0),
+            "arrival_date": (
+                r["arrival_date"].isoformat()
+                if isinstance(r.get("arrival_date"), datetime)
+                else r.get("arrival_date")
+            ),
+        }
+        for r in paginated
+    ]
+    
+    logger.info(
+        "Returning %d prices from data.gov.in API (total=%d, commodity=%s, state=%s)",
+        len(price_dicts),
+        total,
+        commodity,
+        state,
+    )
+    
+    return {
+        "source": "data.gov.in",
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "prices": price_dicts,
+    }
+
+
+# ---------------------------------------------------------------------------
 # DB Query Functions
 # ---------------------------------------------------------------------------
 

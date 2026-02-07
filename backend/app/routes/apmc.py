@@ -62,8 +62,8 @@ async def get_commodities(db: Session = Depends(get_db)):
     description=(
         "Query APMC prices with optional filters on commodity, state, "
         "district, and price range. Supports pagination. "
-        "When a data.gov.in API key is configured the endpoint attempts "
-        "an automatic background refresh before querying."
+        "Always fetches live data from data.gov.in API first, "
+        "falls back to local database if API is unavailable."
     ),
 )
 async def get_prices(
@@ -84,22 +84,28 @@ async def get_prices(
     ),
     limit: int = Query(50, ge=1, le=200, description="Page size"),
     offset: int = Query(0, ge=0, description="Page offset"),
-    refresh: bool = Query(
-        False,
-        description=(
-            "If true, attempt to refresh data from data.gov.in before querying"
-        ),
-    ),
     db: Session = Depends(get_db),
 ):
-    """Get APMC prices filtered by commodity / state / district."""
+    """Get APMC prices filtered by commodity / state / district.
+    
+    Always attempts to fetch live data from data.gov.in API first.
+    Falls back to local database only if the API is unavailable.
+    """
     try:
-        refresh_info = None
-        if refresh:
-            refresh_info = await apmc_service.refresh_prices_from_api(
-                db, commodity=commodity, state=state
-            )
-
+        result = await apmc_service.get_prices_from_api(
+            commodity=commodity,
+            state=state,
+            district=district,
+            min_price=min_price,
+            max_price=max_price,
+            limit=limit,
+            offset=offset,
+        )
+        
+        if result is not None:
+            return result
+        
+        # Fallback to database if API failed
         prices, total = apmc_service.get_prices(
             db,
             commodity=commodity,
@@ -129,15 +135,14 @@ async def get_prices(
             for p in prices
         ]
 
-        response: dict = {
+        return {
+            "source": "local_database",
+            "message": "API unavailable, showing cached data",
             "total": total,
             "limit": limit,
             "offset": offset,
             "prices": price_dicts,
         }
-        if refresh_info is not None:
-            response["refresh_info"] = refresh_info
-        return response
 
     except HTTPException:
         raise

@@ -5,6 +5,10 @@ import { Toaster } from "react-hot-toast";
 import App from "./App.jsx";
 import "./index.css";
 
+// ---------------------------------------------------------------------------
+// Toast Configuration
+// ---------------------------------------------------------------------------
+
 const TOAST_OPTIONS = {
   position: "top-right",
   duration: 4000,
@@ -28,6 +32,29 @@ const TOAST_OPTIONS = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Service Worker Registration
+// ---------------------------------------------------------------------------
+
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator && import.meta.env.PROD) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          console.info("[SW] Registered:", registration.scope);
+        })
+        .catch((error) => {
+          console.warn("[SW] Registration failed:", error);
+        });
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mount Application
+// ---------------------------------------------------------------------------
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
@@ -44,3 +71,5 @@ createRoot(rootElement).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+registerServiceWorker();

@@ -77,6 +77,7 @@
   "370001": {"lat": 23.2419, "lon": 69.6669, "city": "Bhuj", "state": "Gujarat"},
   "380001": {"lat": 23.0225, "lon": 72.5714, "city": "Ahmedabad", "state": "Gujarat"},
   "382001": {"lat": 23.2156, "lon": 72.6369, "city": "Gandhinagar", "state": "Gujarat"},
+  "382007": {"lat": 23.1000, "lon": 72.5500, "city": "Chandkheda", "state": "Gujarat"},
   "388001": {"lat": 22.5645, "lon": 72.9289, "city": "Anand", "state": "Gujarat"},
   "390001": {"lat": 22.3072, "lon": 73.1812, "city": "Vadodara", "state": "Gujarat"},
   "394001": {"lat": 21.1702, "lon": 72.8311, "city": "Surat", "state": "Gujarat"},

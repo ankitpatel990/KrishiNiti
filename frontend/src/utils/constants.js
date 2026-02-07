@@ -125,6 +125,7 @@ export const STORAGE_KEYS = {
   LANGUAGE: "farmhelp_language",
   PINCODE: "farmhelp_pincode",
   RECENT_SEARCHES: "farmhelp_recent_searches",
+  RECENT_ACTIVITY: "farmhelp_recent_activity",
   THEME: "farmhelp_theme",
   USER_PREFERENCES: "farmhelp_preferences",
   VOICE_SETTINGS: "farmhelp_voice_settings",

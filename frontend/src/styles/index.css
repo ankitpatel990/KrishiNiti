@@ -88,12 +88,19 @@
   --animate-slide-down: slide-down 0.3s ease-out;
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-bounce-gentle: bounce-gentle 1s infinite;
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
 
   /* Shadows */
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1),
     0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-float: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
+
+/* -----------------------------------------------------------------------
+ * Keyframes
+ * ----------------------------------------------------------------------- */
 
 @keyframes fade-in {
   from {
@@ -138,10 +145,19 @@
   }
 }
 
-/*
- * Base layer overrides.
- * Sets sensible defaults for the entire application.
- */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* -----------------------------------------------------------------------
+ * Base Layer
+ * ----------------------------------------------------------------------- */
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -152,6 +168,8 @@
   body {
     @apply bg-neutral-50 text-neutral-800 font-sans;
     min-height: 100vh;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1,
@@ -161,5 +179,208 @@
   h5,
   h6 {
     @apply font-display font-semibold text-neutral-900;
+    line-height: 1.3;
+  }
+
+  h1 {
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    line-height: 1.7;
+  }
+
+  /* Improved focus-visible indicators for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove default focus ring, rely on focus-visible */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Skip-to-content link (screen reader accessible) */
+  .sr-skip-link {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    z-index: 9999;
+  }
+
+  .sr-skip-link:focus {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-primary-600);
+    color: white;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+}
+
+/* -----------------------------------------------------------------------
+ * Dark Mode
+ *
+ * Class-based dark mode: toggled by adding .dark to <html>.
+ * Overrides the most common surface, text, and border colors
+ * globally so existing components adapt without per-file changes.
+ * ----------------------------------------------------------------------- */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: var(--color-neutral-950);
+  color: var(--color-neutral-300);
+}
+
+/* Surface overrides */
+html.dark .bg-white,
+html.dark .bg-white\/95 {
+  background-color: var(--color-neutral-900);
+}
+
+html.dark .bg-neutral-50 {
+  background-color: var(--color-neutral-950);
+}
+
+html.dark .bg-neutral-100 {
+  background-color: var(--color-neutral-900);
+}
+
+/* Text overrides */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: var(--color-neutral-100);
+}
+
+html.dark .text-neutral-900 {
+  color: var(--color-neutral-100);
+}
+
+html.dark .text-neutral-800 {
+  color: var(--color-neutral-200);
+}
+
+html.dark .text-neutral-700 {
+  color: var(--color-neutral-300);
+}
+
+html.dark .text-neutral-600 {
+  color: var(--color-neutral-400);
+}
+
+html.dark .text-neutral-500 {
+  color: var(--color-neutral-400);
+}
+
+/* Border overrides */
+html.dark .border-neutral-200 {
+  border-color: var(--color-neutral-700);
+}
+
+html.dark .border-neutral-100 {
+  border-color: var(--color-neutral-800);
+}
+
+html.dark .border-neutral-300 {
+  border-color: var(--color-neutral-600);
+}
+
+/* Shadow overrides */
+html.dark .shadow-card {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+}
+
+html.dark .shadow-card-hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.4),
+    0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* Input / form overrides */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: var(--color-neutral-800);
+  border-color: var(--color-neutral-600);
+  color: var(--color-neutral-200);
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: var(--color-neutral-500);
+}
+
+/* -----------------------------------------------------------------------
+ * Utility Classes
+ * ----------------------------------------------------------------------- */
+
+@layer utilities {
+  /* Gradient background for headers */
+  .bg-gradient-header {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-600) 0%,
+      var(--color-primary-700) 50%,
+      var(--color-primary-800) 100%
+    );
+  }
+
+  /* Shimmer effect for skeleton loaders */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  html.dark .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  /* Card hover lift */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Feature tour spotlight */
+  .tour-spotlight {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    position: fixed;
+    z-index: 9998;
+    pointer-events: none;
+    transition: all 0.3s ease;
   }
 }

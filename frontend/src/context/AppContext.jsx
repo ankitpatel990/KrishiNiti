@@ -4,7 +4,8 @@
  *
  * Manages:
  *  - Language preference (English / Hindi) with persistence
- *  - User preferences (theme, notifications, etc.)
+ *  - Theme preference (light / dark) with persistence
+ *  - User preferences (notifications, etc.)
  *  - Global loading state
  *  - Global error state
  */
@@ -18,6 +19,15 @@ import {
 } from "@utils/constants";
 
 // ---------------------------------------------------------------------------
+// Theme Constants
+// ---------------------------------------------------------------------------
+
+export const THEMES = {
+  LIGHT: "light",
+  DARK: "dark",
+};
+
+// ---------------------------------------------------------------------------
 // Initial State
 // ---------------------------------------------------------------------------
 
@@ -27,9 +37,24 @@ function loadPersistedPreferences() {
   });
 }
 
+function loadPersistedTheme() {
+  const saved = storage.get(STORAGE_KEYS.THEME, null);
+  if (saved === THEMES.DARK || saved === THEMES.LIGHT) {
+    return saved;
+  }
+  if (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  ) {
+    return THEMES.DARK;
+  }
+  return THEMES.LIGHT;
+}
+
 function buildInitialState() {
   return {
     language: storage.get(STORAGE_KEYS.LANGUAGE, DEFAULT_LANGUAGE),
+    theme: loadPersistedTheme(),
     preferences: loadPersistedPreferences(),
     loading: false,
     loadingMessage: "",
@@ -43,6 +68,7 @@ function buildInitialState() {
 
 const ACTION_TYPES = {
   SET_LANGUAGE: "SET_LANGUAGE",
+  SET_THEME: "SET_THEME",
   SET_PREFERENCES: "SET_PREFERENCES",
   SET_LOADING: "SET_LOADING",
   SET_ERROR: "SET_ERROR",
@@ -58,6 +84,9 @@ function appReducer(state, action) {
   switch (action.type) {
     case ACTION_TYPES.SET_LANGUAGE:
       return { ...state, language: action.payload };
+
+    case ACTION_TYPES.SET_THEME:
+      return { ...state, theme: action.payload };
 
     case ACTION_TYPES.SET_PREFERENCES:
       return {
@@ -105,6 +134,16 @@ export function AppProvider({ children }) {
     document.documentElement.lang = state.language;
   }, [state.language]);
 
+  // Persist theme and apply dark class to <html>
+  useEffect(() => {
+    storage.set(STORAGE_KEYS.THEME, state.theme);
+    if (state.theme === THEMES.DARK) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [state.theme]);
+
   // Persist preferences whenever they change
   useEffect(() => {
     storage.set(STORAGE_KEYS.USER_PREFERENCES, state.preferences);
@@ -132,6 +171,19 @@ export function AppProvider({ children }) {
       dispatch({ type: ACTION_TYPES.SET_LANGUAGE, payload: nextLang });
     },
 
+    setTheme: (theme) => {
+      if (theme !== THEMES.LIGHT && theme !== THEMES.DARK) {
+        return;
+      }
+      dispatch({ type: ACTION_TYPES.SET_THEME, payload: theme });
+    },
+
+    toggleTheme: () => {
+      const nextTheme =
+        state.theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
+      dispatch({ type: ACTION_TYPES.SET_THEME, payload: nextTheme });
+    },
+
     setPreferences: (prefs) => {
       dispatch({ type: ACTION_TYPES.SET_PREFERENCES, payload: prefs });
     },
@@ -153,6 +205,7 @@ export function AppProvider({ children }) {
 
     resetState: () => {
       storage.remove(STORAGE_KEYS.LANGUAGE);
+      storage.remove(STORAGE_KEYS.THEME);
       storage.remove(STORAGE_KEYS.USER_PREFERENCES);
       dispatch({ type: ACTION_TYPES.RESET });
     },

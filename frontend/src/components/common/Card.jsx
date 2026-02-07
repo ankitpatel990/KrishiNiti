@@ -2,7 +2,8 @@
  * Card - Container card with variant support.
  *
  * Variants: default | bordered | elevated | flat
- * Optional header, footer, and hover-lift effect.
+ * Optional header, footer, and hover-lift effect with smooth
+ * transform animation on hover.
  */
 
 import PropTypes from "prop-types";
@@ -26,11 +27,13 @@ function Card({
   ...rest
 }) {
   const isClickable = Boolean(onClick);
+  const shouldLift = hoverable || isClickable;
 
   const classes = [
-    "rounded-xl overflow-hidden transition-shadow duration-200",
+    "rounded-xl overflow-hidden",
+    "transition-all duration-200 ease-out",
     VARIANT_CLASSES[variant] || VARIANT_CLASSES.default,
-    hoverable || isClickable ? "hover:shadow-card-hover" : "",
+    shouldLift ? "hover-lift" : "",
     isClickable ? "cursor-pointer" : "",
     className,
   ]

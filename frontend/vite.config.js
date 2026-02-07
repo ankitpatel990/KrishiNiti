@@ -69,5 +69,14 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: ["react", "react-dom", "react-router-dom", "axios"],
     },
+
+    test: {
+      globals: true,
+      environment: "node",
+      setupFiles: ["./tests/setup.js"],
+      include: ["tests/**/*.test.{js,jsx}"],
+      css: false,
+      pool: "threads",
+    },
   };
 });

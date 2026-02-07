@@ -258,67 +258,56 @@ function AIAnalysis({
               </div>
             </div>
 
-            {/* Overall progress bar (during analysis) */}
+            {/* Show detailed steps only during analysis, compact view when complete */}
             {isAnalyzing && (
-              <div className="space-y-1">
-                <div
-                  className="h-1.5 w-full rounded-full bg-neutral-200 overflow-hidden"
-                  role="progressbar"
-                  aria-valuenow={Math.round(
-                    ((currentStepIndex + 1) / STAGE_CONFIG.length) * 100,
-                  )}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Analysis progress"
-                >
-                  <motion.div
-                    className="h-full rounded-full bg-primary-500"
-                    initial={{ width: 0 }}
-                    animate={{
-                      width: `${((currentStepIndex + 0.5) / STAGE_CONFIG.length) * 100}%`,
-                    }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
+              <>
+                {/* Overall progress bar (during analysis) */}
+                <div className="space-y-1">
+                  <div
+                    className="h-1.5 w-full rounded-full bg-neutral-200 overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={Math.round(
+                      ((currentStepIndex + 1) / STAGE_CONFIG.length) * 100,
+                    )}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="Analysis progress"
+                  >
+                    <motion.div
+                      className="h-full rounded-full bg-primary-500"
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: `${((currentStepIndex + 0.5) / STAGE_CONFIG.length) * 100}%`,
+                      }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    />
+                  </div>
                 </div>
-              </div>
+
+                {/* Stage steps */}
+                <div className="space-y-1">
+                  {STAGE_CONFIG.map((config, index) => {
+                    let status = "pending";
+                    if (index < currentStepIndex) {
+                      status = "complete";
+                    } else if (index === currentStepIndex) {
+                      status = "active";
+                    }
+
+                    return (
+                      <StageStep
+                        key={config.key}
+                        config={config}
+                        status={status}
+                        index={index}
+                      />
+                    );
+                  })}
+                </div>
+              </>
             )}
 
-            {/* Complete state progress bar */}
-            {isComplete && (
-              <div className="h-1.5 w-full rounded-full bg-primary-200 overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full bg-primary-500"
-                  initial={{ width: "75%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                />
-              </div>
-            )}
-
-            {/* Stage steps */}
-            <div className="space-y-1">
-              {STAGE_CONFIG.map((config, index) => {
-                let status = "pending";
-                if (isComplete || isError) {
-                  status = "complete";
-                } else if (index < currentStepIndex) {
-                  status = "complete";
-                } else if (index === currentStepIndex) {
-                  status = "active";
-                }
-
-                return (
-                  <StageStep
-                    key={config.key}
-                    config={config}
-                    status={status}
-                    index={index}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Completion message */}
+            {/* Compact completion message */}
             {isComplete && (
               <motion.div
                 initial={{ opacity: 0, y: 6 }}

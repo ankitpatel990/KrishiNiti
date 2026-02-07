@@ -8,8 +8,6 @@ distance calculation, and price analytics.
 
 import logging
 import math
-import threading
-import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -92,41 +90,6 @@ APMC_COORDINATES: Dict[str, Dict[str, float]] = {
 
 
 # ---------------------------------------------------------------------------
-# In-Memory Cache for data.gov.in API Responses
-# ---------------------------------------------------------------------------
-
-class _ApiCache:
-    """Thread-safe in-memory cache with TTL for API responses."""
-
-    def __init__(self, ttl_hours: int):
-        self._ttl = timedelta(hours=ttl_hours)
-        self._store: Dict[str, Tuple[datetime, Any]] = {}
-        self._lock = threading.Lock()
-
-    def get(self, key: str) -> Optional[Any]:
-        with self._lock:
-            entry = self._store.get(key)
-            if entry is None:
-                return None
-            cached_at, data = entry
-            if datetime.now(timezone.utc) - cached_at > self._ttl:
-                del self._store[key]
-                return None
-            return data
-
-    def put(self, key: str, data: Any) -> None:
-        with self._lock:
-            self._store[key] = (datetime.now(timezone.utc), data)
-
-    def clear(self) -> None:
-        with self._lock:
-            self._store.clear()
-
-
-_api_cache = _ApiCache(ttl_hours=settings.APMC_CACHE_HOURS)
-
-
-# ---------------------------------------------------------------------------
 # Distance Calculation (Haversine)
 # ---------------------------------------------------------------------------
 
@@ -204,6 +167,8 @@ async def fetch_from_data_gov(
 ) -> Optional[List[Dict]]:
     """
     Fetch commodity prices from the data.gov.in API.
+    
+    Always fetches fresh data from the API without using cache.
 
     Returns:
         List of parsed price dicts, or None if the API is unavailable.
@@ -213,12 +178,6 @@ async def fetch_from_data_gov(
             "data.gov.in API key not configured; skipping external fetch"
         )
         return None
-
-    cache_key = f"datagov:{commodity or 'all'}:{state or 'all'}"
-    cached = _api_cache.get(cache_key)
-    if cached is not None:
-        logger.info("Serving data.gov.in data from cache (key=%s)", cache_key)
-        return cached
 
     url = f"{settings.DATA_GOV_IN_API_URL}/{DATA_GOV_RESOURCE_ID}"
     params: Dict[str, Any] = {
@@ -232,7 +191,7 @@ async def fetch_from_data_gov(
         params["filters[state]"] = state
 
     logger.info(
-        "Fetching from data.gov.in | commodity=%s state=%s limit=%d",
+        "Fetching fresh data from data.gov.in | commodity=%s state=%s limit=%d",
         commodity,
         state,
         limit,
@@ -251,9 +210,8 @@ async def fetch_from_data_gov(
             if r is not None
         ]
 
-        _api_cache.put(cache_key, parsed)
         logger.info(
-            "Fetched %d records from data.gov.in (commodity=%s, state=%s)",
+            "Fetched %d fresh records from data.gov.in (commodity=%s, state=%s)",
             len(parsed),
             commodity,
             state,

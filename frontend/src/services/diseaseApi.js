@@ -36,13 +36,22 @@ export async function detectDiseaseWithImage(imageFile, cropType) {
   const formData = new FormData();
   formData.append("image", imageFile);
 
-  const params = new URLSearchParams({ crop_type: cropType });
+  // Add timestamp to prevent any browser/proxy caching
+  const params = new URLSearchParams({
+    crop_type: cropType,
+    _t: Date.now().toString(),
+  });
 
   const { data } = await api.post(
     `${BASE}/detect?${params.toString()}`,
     formData,
     {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
       timeout: 120_000,
     },
   );

@@ -12,7 +12,7 @@
  *   Backend AI model  ->  fallback mock data (last resort)
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlassCircleIcon,
@@ -62,20 +62,29 @@ const FALLBACK_MOCK_RESULTS = [
 function DiseaseDetectionPage() {
   const { language } = useApp();
 
-  // Step tracking
-  const [selectedCrop, setSelectedCrop] = useState(null);
-  const [images, setImages] = useState([]);
-  const [detecting, setDetecting] = useState(false);
-  const [results, setResults] = useState(null);
-  const [error, setError] = useState(null);
+  // Step tracking - use function initializers to ensure fresh values
+  const [selectedCrop, setSelectedCrop] = useState(() => null);
+  const [images, setImages] = useState(() => []);
+  const [detecting, setDetecting] = useState(() => false);
+  const [results, setResults] = useState(() => null);
+  const [error, setError] = useState(() => null);
 
-  // AI analysis tracking
-  const [analysisStage, setAnalysisStage] = useState(ANALYSIS_STAGES.IDLE);
-  const [usingMock, setUsingMock] = useState(false);
-  const [analysisTimeMs, setAnalysisTimeMs] = useState(null);
-  const [modelUsed, setModelUsed] = useState(null);
+  // AI analysis tracking - use function initializers
+  const [analysisStage, setAnalysisStage] = useState(() => ANALYSIS_STAGES.IDLE);
+  const [usingMock, setUsingMock] = useState(() => false);
+  const [analysisTimeMs, setAnalysisTimeMs] = useState(() => null);
+  const [modelUsed, setModelUsed] = useState(() => null);
 
-  const detectionIdRef = useRef(0);
+  // Use a fresh ref on each mount
+  const detectionIdRef = useRef(Date.now());
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Invalidate any pending requests when unmounting
+      detectionIdRef.current = Date.now();
+    };
+  }, []);
 
   // -------------------------------------------------------------------
   // Handlers
@@ -110,40 +119,62 @@ function DiseaseDetectionPage() {
   const handleDetect = useCallback(async () => {
     if (images.length === 0 || !selectedCrop) return;
 
-    const currentId = ++detectionIdRef.current;
+    // Generate unique ID for this detection request
+    const currentId = Date.now();
+    detectionIdRef.current = currentId;
 
-    setDetecting(true);
+    // Clear all previous state immediately before starting new analysis
     setResults(null);
     setError(null);
     setUsingMock(false);
     setAnalysisTimeMs(null);
     setModelUsed(null);
+    setDetecting(true);
 
     // Show progress stages
     setAnalysisStage(ANALYSIS_STAGES.LOADING_MODEL);
 
+    // Store timeout IDs for cleanup
+    const timeoutIds = [];
+
     try {
       // Simulate stage progression for UX
-      setTimeout(() => {
-        if (detectionIdRef.current === currentId) {
-          setAnalysisStage(ANALYSIS_STAGES.PREPROCESSING);
-        }
-      }, 500);
+      timeoutIds.push(
+        setTimeout(() => {
+          if (detectionIdRef.current === currentId) {
+            setAnalysisStage(ANALYSIS_STAGES.PREPROCESSING);
+          }
+        }, 500)
+      );
 
-      setTimeout(() => {
-        if (detectionIdRef.current === currentId) {
-          setAnalysisStage(ANALYSIS_STAGES.RUNNING_INFERENCE);
-        }
-      }, 1200);
+      timeoutIds.push(
+        setTimeout(() => {
+          if (detectionIdRef.current === currentId) {
+            setAnalysisStage(ANALYSIS_STAGES.RUNNING_INFERENCE);
+          }
+        }, 1200)
+      );
 
       const startTime = performance.now();
       const imageFile = images[0].file;
 
       const response = await detectDiseaseWithImage(imageFile, selectedCrop);
 
+      // Clear timeouts as API has responded
+      timeoutIds.forEach(clearTimeout);
+
       if (detectionIdRef.current !== currentId) return;
 
       const elapsed = Math.round(performance.now() - startTime);
+
+      // Transition to postprocessing stage before showing results
+      setAnalysisStage(ANALYSIS_STAGES.POSTPROCESSING);
+
+      // Small delay to show postprocessing stage
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (detectionIdRef.current !== currentId) return;
+
       setAnalysisTimeMs(elapsed);
 
       if (response?.predictions && response.predictions.length > 0) {
@@ -172,6 +203,9 @@ function DiseaseDetectionPage() {
       setAnalysisStage(ANALYSIS_STAGES.COMPLETE);
       setDetecting(false);
     } catch (err) {
+      // Clear timeouts on error
+      timeoutIds.forEach(clearTimeout);
+
       if (detectionIdRef.current !== currentId) return;
 
       // Last resort: use inline mock
@@ -187,10 +221,15 @@ function DiseaseDetectionPage() {
   }, [images, selectedCrop]);
 
   const handleReset = useCallback(() => {
-    detectionIdRef.current++;
+    // Invalidate any pending requests
+    detectionIdRef.current = Date.now();
+    
+    // Revoke object URLs to prevent memory leaks
     for (const img of images) {
       URL.revokeObjectURL(img.preview);
     }
+    
+    // Reset all state to initial values
     setSelectedCrop(null);
     setImages([]);
     setResults(null);
@@ -213,9 +252,19 @@ function DiseaseDetectionPage() {
   const hasCrop = Boolean(selectedCrop);
   const hasImages = images.length > 0;
   const canAnalyze = hasCrop && hasImages && !detecting;
-  const hasResults = results && results.length > 0;
-  const primaryResult = hasResults ? results[0] : null;
-  const showAnalysisPanel = analysisStage !== ANALYSIS_STAGES.IDLE;
+  
+  // Only consider results valid if analysis is complete and not currently detecting
+  const hasValidResults = 
+    results && 
+    results.length > 0 && 
+    !detecting && 
+    analysisStage === ANALYSIS_STAGES.COMPLETE;
+  
+  const primaryResult = hasValidResults ? results[0] : null;
+  
+  // Show analysis panel during analysis OR when complete with results (to show model info)
+  const showAnalysisPanel =
+    analysisStage !== ANALYSIS_STAGES.IDLE;
 
   // -------------------------------------------------------------------
   // Render
@@ -270,7 +319,7 @@ function DiseaseDetectionPage() {
       </Card>
 
       {/* Step 1: Crop selection */}
-      {!hasResults && (
+      {!hasValidResults && (
         <section aria-label="Crop selection">
           <CropSelector
             selectedCrop={selectedCrop}
@@ -281,7 +330,7 @@ function DiseaseDetectionPage() {
       )}
 
       {/* Step 2: Image upload (shown after crop is selected) */}
-      {hasCrop && !hasResults && (
+      {hasCrop && !hasValidResults && (
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -297,7 +346,7 @@ function DiseaseDetectionPage() {
       )}
 
       {/* Analyze button */}
-      {canAnalyze && !hasResults && (
+      {canAnalyze && !hasValidResults && (
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="primary"
@@ -344,7 +393,7 @@ function DiseaseDetectionPage() {
 
       {/* Results section */}
       <AnimatePresence>
-        {hasResults && !detecting && (
+        {hasValidResults && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

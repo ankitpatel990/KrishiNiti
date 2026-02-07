@@ -27,8 +27,7 @@ const COMMODITY_EMOJIS = {
   Onion: "\uD83E\uDDC5",
   Potato: "\uD83E\uDD54",
   Tomato: "\uD83C\uDF45",
-  Sugarcane: "\uD83C\uDF31",
-  Soybean: "\uD83C\uDF31",
+  Soyabean: "\uD83C\uDF31",
   Maize: "\uD83C\uDF3D",
   Corn: "\uD83C\uDF3D",
   Groundnut: "\uD83E\uDD5C",
@@ -81,8 +80,8 @@ const POPULAR_COMMODITIES = [
   "Onion",
   "Potato",
   "Tomato",
-  "Sugarcane",
-  "Soybean",
+  "Soyabean",
+  "Groundnut",
 ];
 
 function getRecentCommodities() {

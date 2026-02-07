@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from app.config import settings
-from app.database import check_db_connection, init_db
+from app.database import check_db_connection, init_db, get_db_context
 from app.middleware.cors_middleware import configure_cors
 from app.middleware.error_handler import register_error_handlers
 from app.middleware.logging_middleware import RequestLoggingMiddleware
@@ -91,6 +91,47 @@ def _configure_logging() -> None:
 logger = logging.getLogger(__name__)
 
 
+def _seed_diseases_if_empty() -> None:
+    """
+    Seed the disease treatment data from diseases.json if the table is empty.
+    This ensures the database has treatment info for AI predictions.
+    """
+    import json
+    from app.models import DiseaseTreatment
+    
+    try:
+        with get_db_context() as db:
+            count = db.query(DiseaseTreatment).count()
+            if count > 0:
+                logger.info(f"Disease data already loaded: {count} records")
+                return
+            
+            # Load from JSON file
+            data_file = Path(__file__).parent.parent / "data" / "diseases.json"
+            if not data_file.exists():
+                logger.warning(f"diseases.json not found at {data_file}")
+                return
+            
+            with open(data_file, "r", encoding="utf-8") as f:
+                diseases = json.load(f)
+            
+            inserted = 0
+            for disease_data in diseases:
+                try:
+                    disease = DiseaseTreatment(**disease_data)
+                    db.add(disease)
+                    inserted += 1
+                except Exception as e:
+                    logger.warning(f"Error inserting disease: {e}")
+                    continue
+            
+            db.commit()
+            logger.info(f"Seeded {inserted} disease records from diseases.json")
+            
+    except Exception as e:
+        logger.error(f"Error seeding diseases: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown logic."""
@@ -98,6 +139,10 @@ async def lifespan(app: FastAPI):
 
     logger.info("Initializing database tables...")
     init_db()
+    
+    # Auto-seed disease data if table is empty
+    _seed_diseases_if_empty()
+    
     logger.info(
         "Farm Help API started | env=%s version=%s",
         settings.ENVIRONMENT,

@@ -45,11 +45,7 @@ import {
 } from "@services/apmcApi";
 import useApp from "@hooks/useApp";
 import useLocation from "@hooks/useLocation";
-import storage from "@utils/storage";
 import { formatPricePerQuintal, formatDate } from "@utils/helpers";
-
-const CACHE_KEY_PREFIX = "farmhelp_apmc_";
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const INITIAL_FILTERS = {
   state: "",
@@ -78,27 +74,16 @@ function APMCPricePage() {
   const requestIdRef = useRef(0);
   const voiceAutoSearchDone = useRef(false);
 
-  // Fetch commodities on mount
+  // Fetch commodities on mount - always fetch fresh data from API
   useEffect(() => {
     let cancelled = false;
 
     async function fetchCommodities() {
       setCommoditiesLoading(true);
       try {
-        const cached = storage.get(`${CACHE_KEY_PREFIX}commodities`, null);
-        if (cached && cached._ts && Date.now() - cached._ts < CACHE_TTL_MS) {
-          setCommodities(cached.commodities || []);
-          setCommoditiesLoading(false);
-          return;
-        }
-
         const data = await getCommodities();
         if (!cancelled) {
           setCommodities(data.commodities || []);
-          storage.set(`${CACHE_KEY_PREFIX}commodities`, {
-            ...data,
-            _ts: Date.now(),
-          });
         }
       } catch (err) {
         if (!cancelled) {
@@ -115,9 +100,9 @@ function APMCPricePage() {
     };
   }, []);
 
-  // Fetch price data when commodity changes
+  // Fetch price data when commodity changes - always fetch fresh data from API
   const fetchPriceData = useCallback(
-    async (commodity, forceRefresh = false) => {
+    async (commodity) => {
       if (!commodity) return;
 
       const currentRequestId = ++requestIdRef.current;
@@ -125,20 +110,6 @@ function APMCPricePage() {
       setError(null);
 
       try {
-        // Check cache
-        const cacheKey = `${CACHE_KEY_PREFIX}prices_${commodity.toLowerCase()}`;
-        if (!forceRefresh) {
-          const cached = storage.get(cacheKey, null);
-          if (cached && cached._ts && Date.now() - cached._ts < CACHE_TTL_MS) {
-            if (currentRequestId !== requestIdRef.current) return;
-            setPrices(cached.prices || []);
-            setBestAPMC(cached.bestAPMC || null);
-            setTrends(cached.trends || null);
-            setLoading(false);
-            return;
-          }
-        }
-
         // Build location params for best APMC
         const locationParams = {};
         if (location?.coordinates) {
@@ -146,7 +117,7 @@ function APMCPricePage() {
           locationParams.longitude = location.coordinates.lon;
         }
 
-        // Parallel API calls
+        // Parallel API calls - always fetch fresh data
         const [pricesRes, bestRes, trendsRes] = await Promise.allSettled([
           getPrices({ commodity, limit: 100 }),
           getBestAPMC(commodity, locationParams),
@@ -187,14 +158,6 @@ function APMCPricePage() {
         setPrices(pricesData);
         setBestAPMC(bestData);
         setTrends(trendsData);
-
-        // Cache
-        storage.set(cacheKey, {
-          prices: pricesData,
-          bestAPMC: bestData,
-          trends: trendsData,
-          _ts: Date.now(),
-        });
       } catch (err) {
         if (currentRequestId !== requestIdRef.current) return;
         setError(err.message || "Failed to fetch APMC prices");
@@ -229,7 +192,7 @@ function APMCPricePage() {
 
   const handleRefresh = useCallback(() => {
     if (selectedCommodity) {
-      fetchPriceData(selectedCommodity, true);
+      fetchPriceData(selectedCommodity);
     }
   }, [selectedCommodity, fetchPriceData]);
 

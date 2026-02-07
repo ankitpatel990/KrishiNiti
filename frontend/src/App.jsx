@@ -59,7 +59,7 @@ function AppShell() {
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/profile" element={<FarmerProfilePage />} />
                 <Route path="/my-dashboard" element={<FarmerDashboardPage />} />
-                <Route path="/disease" element={<DiseaseDetectionPage />} />
+                <Route path="/disease" element={<DiseaseDetectionPage key={location.key} />} />
                 <Route path="/weather" element={<WeatherPage />} />
                 <Route path="/apmc" element={<APMCPricePage />} />
                 <Route path="/schemes" element={<SchemesPage />} />

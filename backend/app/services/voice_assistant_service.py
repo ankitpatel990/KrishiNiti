@@ -147,19 +147,26 @@ def _detect_intent(message: str) -> str:
 
 
 # Commodity names the system can extract from voice queries
+# Note: Uses data.gov.in API naming (e.g., "Soyabean" not "Soybean")
 _COMMODITY_NAMES = [
-    "wheat", "paddy", "rice", "cotton", "sugarcane", "tomato", "potato",
+    "wheat", "paddy", "rice", "cotton", "tomato", "potato",
     "onion", "chilli", "maize", "corn", "pulses", "oilseeds", "millets",
-    "groundnut", "cumin", "soybean", "mustard", "bajra", "jowar", "ragi",
+    "groundnut", "cumin", "soyabean", "soybean", "mustard", "bajra", "jowar", "ragi",
     "barley", "gram", "tur", "moong", "urad", "masoor", "arhar",
 ]
+
+# Map spoken commodity names to API-compatible names
+_COMMODITY_NORMALIZE = {
+    "soybean": "Soyabean",
+    "rice": "Paddy",
+    "corn": "Maize",
+}
 
 _COMMODITY_HI_MAP = {
     "गेहूं": "Wheat",
     "धान": "Paddy",
     "चावल": "Paddy",
     "कपास": "Cotton",
-    "गन्ना": "Sugarcane",
     "टमाटर": "Tomato",
     "आलू": "Potato",
     "प्याज": "Onion",
@@ -172,18 +179,23 @@ _COMMODITY_HI_MAP = {
     "ज्वार": "Millets",
     "मूंगफली": "Groundnut",
     "जीरा": "Cumin",
-    "सोयाबीन": "Soybean",
+    "सोयाबीन": "Soyabean",
     "सरसों": "Mustard",
 }
 
 
 def _extract_commodity(message: str) -> Optional[str]:
-    """Extract a commodity/crop name from the user message."""
+    """Extract a commodity/crop name from the user message.
+    
+    Returns the API-compatible commodity name (e.g., 'Soyabean' not 'Soybean').
+    """
     lower = message.lower()
 
     for name in _COMMODITY_NAMES:
         if name in lower:
-            return name.capitalize()
+            # Normalize to API-compatible name if needed
+            normalized = _COMMODITY_NORMALIZE.get(name, name.capitalize())
+            return normalized
 
     for hindi, english in _COMMODITY_HI_MAP.items():
         if hindi in message:

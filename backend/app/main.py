@@ -22,7 +22,7 @@ from app.middleware.error_handler import register_error_handlers
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 from app.middleware.rate_limiter import RateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
-from app.routes import disease, weather, mandi
+from app.routes import disease, weather, apmc, schemes, voice
 from app.utils.constants import (
     API_LEGACY_PREFIX,
     API_V1_PREFIX,
@@ -118,7 +118,7 @@ app = FastAPI(
     description=(
         "AI-Powered Farm Decision Support System for Indian Smallholder Farmers. "
         "Provides disease treatment recommendations, weather forecasts, "
-        "mandi price intelligence, and farming advisories."
+        "APMC price intelligence, and farming advisories."
     ),
     version=settings.APP_VERSION,
     docs_url="/docs",
@@ -163,12 +163,16 @@ register_error_handlers(app)
 # Current version routers (v1)
 app.include_router(disease.router, prefix=API_V1_PREFIX, tags=["v1 - Disease"])
 app.include_router(weather.router, prefix=API_V1_PREFIX, tags=["v1 - Weather"])
-app.include_router(mandi.router, prefix=API_V1_PREFIX, tags=["v1 - Mandi"])
+app.include_router(apmc.router, prefix=API_V1_PREFIX, tags=["v1 - APMC"])
+app.include_router(schemes.router, prefix=API_V1_PREFIX, tags=["v1 - Schemes"])
+app.include_router(voice.router, prefix=API_V1_PREFIX, tags=["v1 - Voice"])
 
 # Legacy (unversioned) routes for backward compatibility
 app.include_router(disease.router, prefix=API_LEGACY_PREFIX)
 app.include_router(weather.router, prefix=API_LEGACY_PREFIX)
-app.include_router(mandi.router, prefix=API_LEGACY_PREFIX)
+app.include_router(apmc.router, prefix=API_LEGACY_PREFIX)
+app.include_router(schemes.router, prefix=API_LEGACY_PREFIX)
+app.include_router(voice.router, prefix=API_LEGACY_PREFIX)
 
 
 # ---------------------------------------------------------------------------

@@ -47,7 +47,7 @@ class WeatherCache(Base):
     __tablename__ = "weather_cache"
 
     id = Column(Integer, primary_key=True, index=True)
-    pincode = Column(String(10), nullable=False, index=True)
+    taluka = Column(String(100), nullable=False, index=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     forecast_data = Column(Text, nullable=False)
@@ -55,7 +55,7 @@ class WeatherCache(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
 
     __table_args__ = (
-        Index('idx_pincode_expires', 'pincode', 'expires_at'),
+        Index('idx_taluka_expires', 'taluka', 'expires_at'),
         Index('idx_expires_at', 'expires_at'),
         CheckConstraint('latitude >= -90 AND latitude <= 90', name='check_latitude_range'),
         CheckConstraint('longitude >= -180 AND longitude <= 180', name='check_longitude_range'),
@@ -89,4 +89,41 @@ class MandiPrice(Base):
         CheckConstraint('min_price IS NULL OR min_price >= 0', name='check_min_price_positive'),
         CheckConstraint('max_price IS NULL OR max_price >= 0', name='check_max_price_positive'),
         CheckConstraint('modal_price IS NULL OR modal_price >= 0', name='check_modal_price_positive'),
+    )
+
+
+class GovernmentScheme(Base):
+    """
+    Government Schemes Information Model
+    """
+    __tablename__ = "government_schemes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    scheme_code = Column(String(50), unique=True, nullable=False, index=True)
+    scheme_name = Column(String(200), nullable=False, index=True)
+    scheme_name_hindi = Column(String(200), nullable=True)
+    scheme_type = Column(String(50), nullable=False, index=True)
+    state_specific = Column(Integer, default=0, nullable=False)
+    applicable_states = Column(Text, nullable=True)
+    description = Column(Text, nullable=False)
+    description_hindi = Column(Text, nullable=True)
+    benefit_amount = Column(String(200), nullable=True)
+    eligibility_criteria = Column(Text, nullable=True)
+    required_documents = Column(Text, nullable=True)
+    application_process = Column(Text, nullable=True)
+    application_url = Column(String(500), nullable=True)
+    helpline_number = Column(String(50), nullable=True)
+    deadline_type = Column(String(20), nullable=True)
+    deadline_date = Column(String(100), nullable=True)
+    key_features = Column(Text, nullable=True)
+    is_active = Column(Integer, default=1, nullable=False)
+    last_updated = Column(String(20), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    __table_args__ = (
+        Index('idx_scheme_type', 'scheme_type'),
+        Index('idx_state_specific', 'state_specific'),
+        Index('idx_is_active', 'is_active'),
+        Index('idx_scheme_type_active', 'scheme_type', 'is_active'),
     )

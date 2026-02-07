@@ -1,17 +1,15 @@
 /**
- * DiseaseDetectionPage - Main page for crop disease detection.
+ * DiseaseDetectionPage - AI-powered crop disease detection.
  *
- * Orchestrates the disease detection workflow:
- *  1. User uploads one or more crop images
- *  2. "Analyze" is clicked to start detection
- *  3. AI model processes the image (TF.js -> backend API -> mock fallback)
- *  4. Real-time progress is shown via the AIAnalysis component
- *  5. Results and treatment recommendations are displayed
+ * Workflow:
+ *  1. User selects a crop from the AI-supported crop list
+ *  2. User uploads one or more crop leaf images
+ *  3. "Analyze" sends the image + crop_type to the backend
+ *  4. Backend runs the appropriate HuggingFace model (ViT or MobileNetV2)
+ *  5. Results with disease info and treatment are displayed
  *
- * Fallback chain:
- *   TensorFlow.js client-side model (or deterministic mock)
- *    -> Backend /api/v1/disease/detect endpoint
- *    -> Inline mock data (last resort)
+ * Detection chain:
+ *   Backend AI model  ->  fallback mock data (last resort)
  */
 
 import { useState, useCallback, useRef } from "react";
@@ -22,6 +20,7 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
+  CropSelector,
   ImageUpload,
   DetectionResult,
   TreatmentCard,
@@ -29,11 +28,11 @@ import {
 } from "@components/disease";
 import { Button, Card, ErrorMessage } from "@components/common";
 import useApp from "@hooks/useApp";
-import { analyzeImage, ANALYSIS_STAGES } from "@utils/aiModel";
-import { detectDisease as detectDiseaseApi } from "@services/diseaseApi";
+import { ANALYSIS_STAGES } from "@utils/aiModel";
+import { detectDiseaseWithImage } from "@services/diseaseApi";
 
 // ---------------------------------------------------------------------------
-// Fallback mock data (used only when both AI and backend fail)
+// Fallback mock data (used only when backend AI fails)
 // ---------------------------------------------------------------------------
 
 const FALLBACK_MOCK_RESULTS = [
@@ -43,35 +42,16 @@ const FALLBACK_MOCK_RESULTS = [
     crop_type: "Paddy",
     confidence: 87.5,
     symptoms:
-      "Spindle-shaped lesions on leaves with brown centers and gray margins. Lesions appear on leaf blades, leaf sheaths, nodes, and panicles. Severe infection causes leaf drying and panicle blast.",
+      "Spindle-shaped lesions on leaves with brown centers and gray margins.",
     affected_stages: "Tillering, Flowering, Panicle Initiation",
     treatment_chemical:
-      "Tricyclazole 75% WP @ 0.6g/l or Isoprothiolane 40% EC @ 1.5ml/l or Carbendazim 50% WP @ 0.5g/l",
+      "Tricyclazole 75% WP @ 0.6g/l or Isoprothiolane 40% EC @ 1.5ml/l",
     treatment_organic:
-      "Neem oil spray (5ml/l), proper drainage, avoid excess nitrogen, use resistant varieties like IR64, Swarna",
-    dosage:
-      "0.6g per liter of water, spray 2-3 times at 10-15 day intervals",
+      "Neem oil spray (5ml/l), proper drainage, avoid excess nitrogen",
+    dosage: "0.6g per liter of water, spray 2-3 times at 10-15 day intervals",
     cost_per_acre: 500,
     prevention_tips:
-      "Use resistant varieties, maintain proper spacing, avoid excess nitrogen fertilizer, ensure good drainage, remove infected plant debris",
-  },
-  {
-    disease_name: "Brown Spot of Paddy",
-    disease_name_hindi: "\u0927\u093E\u0928 \u0915\u093E \u092D\u0942\u0930\u093E \u0927\u092C\u094D\u092C\u093E",
-    crop_type: "Paddy",
-    confidence: 62.3,
-    symptoms:
-      "Small, circular to oval brown spots on leaves with yellow halos. Spots coalesce to form large patches. Affects grain quality and yield.",
-    affected_stages: "Seedling, Tillering, Flowering",
-    treatment_chemical:
-      "Mancozeb 75% WP @ 2g/l or Propiconazole 25% EC @ 0.5ml/l",
-    treatment_organic:
-      "Neem seed kernel extract (5%), cow urine spray, proper field sanitation",
-    dosage:
-      "2g per liter of water, apply at boot stage and heading stage",
-    cost_per_acre: 450,
-    prevention_tips:
-      "Use certified seeds, maintain proper plant spacing, avoid water stress, remove infected debris",
+      "Use resistant varieties, maintain proper spacing, avoid excess nitrogen fertilizer",
   },
 ];
 
@@ -82,6 +62,8 @@ const FALLBACK_MOCK_RESULTS = [
 function DiseaseDetectionPage() {
   const { language } = useApp();
 
+  // Step tracking
+  const [selectedCrop, setSelectedCrop] = useState(null);
   const [images, setImages] = useState([]);
   const [detecting, setDetecting] = useState(false);
   const [results, setResults] = useState(null);
@@ -89,131 +71,107 @@ function DiseaseDetectionPage() {
 
   // AI analysis tracking
   const [analysisStage, setAnalysisStage] = useState(ANALYSIS_STAGES.IDLE);
-  const [analysisStageData, setAnalysisStageData] = useState({});
   const [usingMock, setUsingMock] = useState(false);
   const [analysisTimeMs, setAnalysisTimeMs] = useState(null);
+  const [modelUsed, setModelUsed] = useState(null);
 
-  // Ref to track whether a detection run has been superseded
   const detectionIdRef = useRef(0);
-
-  // -------------------------------------------------------------------
-  // Stage change handler (passed into analyzeImage)
-  // -------------------------------------------------------------------
-
-  const handleStageChange = useCallback((stage, data = {}) => {
-    setAnalysisStage(stage);
-    setAnalysisStageData(data);
-  }, []);
-
-  // -------------------------------------------------------------------
-  // Backend fallback detection
-  // -------------------------------------------------------------------
-
-  async function backendFallbackDetect(cropType) {
-    try {
-      const response = await detectDiseaseApi(cropType || "Paddy");
-      if (response?.predictions && response.predictions.length > 0) {
-        return response.predictions.map((pred) => ({
-          disease_name: pred.disease_name,
-          disease_name_hindi: pred.disease_name_hindi || "",
-          crop_type: cropType || "Paddy",
-          confidence: Math.round((pred.confidence || 0.5) * 100 * 10) / 10,
-          symptoms: "",
-          affected_stages: "",
-          treatment_chemical: pred.treatment_summary?.chemical || "",
-          treatment_organic: pred.treatment_summary?.organic || "",
-          dosage: "",
-          cost_per_acre: 0,
-          prevention_tips: "",
-        }));
-      }
-    } catch {
-      // Backend also failed; will use inline mock
-    }
-    return null;
-  }
 
   // -------------------------------------------------------------------
   // Handlers
   // -------------------------------------------------------------------
+
+  const handleCropSelect = useCallback(
+    (cropValue) => {
+      setSelectedCrop(cropValue);
+      // Reset results when crop changes
+      if (results) {
+        setResults(null);
+        setError(null);
+        setAnalysisStage(ANALYSIS_STAGES.IDLE);
+        setUsingMock(false);
+        setAnalysisTimeMs(null);
+        setModelUsed(null);
+      }
+    },
+    [results],
+  );
 
   const handleImagesChange = useCallback((newImages) => {
     setImages(newImages);
     setResults(null);
     setError(null);
     setAnalysisStage(ANALYSIS_STAGES.IDLE);
-    setAnalysisStageData({});
     setUsingMock(false);
     setAnalysisTimeMs(null);
+    setModelUsed(null);
   }, []);
 
   const handleDetect = useCallback(async () => {
-    if (images.length === 0) return;
+    if (images.length === 0 || !selectedCrop) return;
 
     const currentId = ++detectionIdRef.current;
 
     setDetecting(true);
     setResults(null);
     setError(null);
-    setAnalysisStage(ANALYSIS_STAGES.IDLE);
     setUsingMock(false);
     setAnalysisTimeMs(null);
+    setModelUsed(null);
+
+    // Show progress stages
+    setAnalysisStage(ANALYSIS_STAGES.LOADING_MODEL);
 
     try {
-      // Run AI analysis on the first uploaded image
+      // Simulate stage progression for UX
+      setTimeout(() => {
+        if (detectionIdRef.current === currentId) {
+          setAnalysisStage(ANALYSIS_STAGES.PREPROCESSING);
+        }
+      }, 500);
+
+      setTimeout(() => {
+        if (detectionIdRef.current === currentId) {
+          setAnalysisStage(ANALYSIS_STAGES.RUNNING_INFERENCE);
+        }
+      }, 1200);
+
+      const startTime = performance.now();
       const imageFile = images[0].file;
-      const aiResult = await analyzeImage(imageFile, {
-        onStageChange: (stage, data) => {
-          // Ignore if this detection run has been superseded
-          if (detectionIdRef.current !== currentId) return;
-          handleStageChange(stage, data);
-        },
-      });
 
-      // Ignore if superseded
+      const response = await detectDiseaseWithImage(imageFile, selectedCrop);
+
       if (detectionIdRef.current !== currentId) return;
 
-      setUsingMock(aiResult.usingMock);
-      setAnalysisTimeMs(aiResult.analysisTimeMs);
+      const elapsed = Math.round(performance.now() - startTime);
+      setAnalysisTimeMs(elapsed);
 
-      if (aiResult.predictions && aiResult.predictions.length > 0) {
-        setResults(aiResult.predictions);
-        setDetecting(false);
-        return;
-      }
+      if (response?.predictions && response.predictions.length > 0) {
+        const mapped = response.predictions.map((pred) => ({
+          disease_name: pred.disease_name,
+          disease_name_hindi: pred.disease_name_hindi || "",
+          crop_type: pred.crop_type || selectedCrop,
+          confidence: pred.confidence,
+          symptoms: pred.symptoms || "",
+          affected_stages: pred.affected_stages || "",
+          treatment_chemical: pred.treatment_chemical || "",
+          treatment_organic: pred.treatment_organic || "",
+          dosage: pred.dosage || "",
+          cost_per_acre: pred.cost_per_acre || 0,
+          prevention_tips: pred.prevention_tips || "",
+        }));
 
-      // AI returned empty predictions - try backend
-      const backendResults = await backendFallbackDetect("Paddy");
-      if (detectionIdRef.current !== currentId) return;
-
-      if (backendResults) {
-        setResults(backendResults);
-        setUsingMock(true);
+        setResults(mapped);
+        setModelUsed(response.predictions[0]?.model_used || "ai");
+        setUsingMock(false);
       } else {
         setResults(FALLBACK_MOCK_RESULTS);
         setUsingMock(true);
       }
 
+      setAnalysisStage(ANALYSIS_STAGES.COMPLETE);
       setDetecting(false);
     } catch (err) {
-      if (detectionIdRef.current !== currentId) return;
-
-      // AI failed - try backend fallback
-      try {
-        const backendResults = await backendFallbackDetect("Paddy");
-        if (detectionIdRef.current !== currentId) return;
-
-        if (backendResults) {
-          setResults(backendResults);
-          setUsingMock(true);
-          setAnalysisStage(ANALYSIS_STAGES.COMPLETE);
-          setDetecting(false);
-          return;
-        }
-      } catch {
-        // Backend also failed
-      }
-
       if (detectionIdRef.current !== currentId) return;
 
       // Last resort: use inline mock
@@ -226,21 +184,22 @@ function DiseaseDetectionPage() {
       );
       setDetecting(false);
     }
-  }, [images, handleStageChange]);
+  }, [images, selectedCrop]);
 
   const handleReset = useCallback(() => {
     detectionIdRef.current++;
     for (const img of images) {
       URL.revokeObjectURL(img.preview);
     }
+    setSelectedCrop(null);
     setImages([]);
     setResults(null);
     setError(null);
     setDetecting(false);
     setAnalysisStage(ANALYSIS_STAGES.IDLE);
-    setAnalysisStageData({});
     setUsingMock(false);
     setAnalysisTimeMs(null);
+    setModelUsed(null);
   }, [images]);
 
   const handleDismissError = useCallback(() => {
@@ -251,11 +210,12 @@ function DiseaseDetectionPage() {
   // Derived state
   // -------------------------------------------------------------------
 
+  const hasCrop = Boolean(selectedCrop);
   const hasImages = images.length > 0;
+  const canAnalyze = hasCrop && hasImages && !detecting;
   const hasResults = results && results.length > 0;
   const primaryResult = hasResults ? results[0] : null;
-  const showAnalysisPanel =
-    analysisStage !== ANALYSIS_STAGES.IDLE;
+  const showAnalysisPanel = analysisStage !== ANALYSIS_STAGES.IDLE;
 
   // -------------------------------------------------------------------
   // Render
@@ -272,12 +232,12 @@ function DiseaseDetectionPage() {
         </h1>
         <p className="text-neutral-600 max-w-2xl">
           {language === "hi"
-            ? "\u0905\u092A\u0928\u0940 \u092B\u0938\u0932 \u0915\u0940 \u0924\u0938\u094D\u0935\u0940\u0930 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u0947\u0902 \u0914\u0930 AI \u0938\u0947 \u0930\u094B\u0917 \u0915\u093E \u092A\u0924\u093E \u0932\u0917\u093E\u090F\u0902\u0964 \u0909\u092A\u091A\u093E\u0930 \u0914\u0930 \u0930\u094B\u0915\u0925\u093E\u092E \u0915\u0940 \u091C\u093E\u0928\u0915\u093E\u0930\u0940 \u092A\u093E\u090F\u0902\u0964"
-            : "Upload a photo of your crop and let AI identify diseases. Get detailed treatment recommendations and prevention tips."}
+            ? "\u0905\u092A\u0928\u0940 \u092B\u0938\u0932 \u091A\u0941\u0928\u0947\u0902, \u0924\u0938\u094D\u0935\u0940\u0930 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u0947\u0902 \u0914\u0930 AI \u0938\u0947 \u0930\u094B\u0917 \u0915\u093E \u092A\u0924\u093E \u0932\u0917\u093E\u090F\u0902\u0964"
+            : "Select your crop, upload a leaf photo, and let AI identify diseases with treatment recommendations."}
         </p>
       </div>
 
-      {/* Feature info card */}
+      {/* How it works */}
       <Card variant="flat" className="border border-primary-200 bg-primary-50/50">
         <div className="flex items-start gap-3">
           <InformationCircleIcon
@@ -285,30 +245,59 @@ function DiseaseDetectionPage() {
             aria-hidden="true"
           />
           <div className="text-sm text-primary-800 space-y-1">
-            <p className="font-medium">How it works</p>
+            <p className="font-medium">
+              {language === "hi" ? "\u0915\u0948\u0938\u0947 \u0915\u093E\u092E \u0915\u0930\u0924\u093E \u0939\u0948" : "How it works"}
+            </p>
             <ol className="list-decimal list-inside space-y-0.5 text-primary-700">
-              <li>Upload a clear photo of the affected leaf or plant</li>
-              <li>Click &quot;Analyze&quot; to start AI-powered detection</li>
               <li>
-                View the identified disease, confidence score, and treatment
-                plan
+                {language === "hi"
+                  ? "\u0905\u092A\u0928\u0940 \u092B\u0938\u0932 \u091A\u0941\u0928\u0947\u0902"
+                  : "Select the crop you want to analyze"}
+              </li>
+              <li>
+                {language === "hi"
+                  ? "\u092A\u094D\u0930\u092D\u093E\u0935\u093F\u0924 \u092A\u0924\u094D\u0924\u0940 \u0915\u0940 \u0938\u094D\u092A\u0937\u094D\u091F \u0924\u0938\u094D\u0935\u0940\u0930 \u0905\u092A\u0932\u094B\u0921 \u0915\u0930\u0947\u0902"
+                  : "Upload a clear photo of the affected leaf"}
+              </li>
+              <li>
+                {language === "hi"
+                  ? "AI \u0938\u0947 \u0930\u094B\u0917 \u0915\u0940 \u092A\u0939\u091A\u093E\u0928 \u0914\u0930 \u0909\u092A\u091A\u093E\u0930 \u092A\u093E\u090F\u0902"
+                  : "Get AI-powered disease diagnosis and treatment plan"}
               </li>
             </ol>
           </div>
         </div>
       </Card>
 
-      {/* Image upload section */}
-      <section aria-label="Image upload">
-        <ImageUpload
-          images={images}
-          onImagesChange={handleImagesChange}
-          disabled={detecting}
-        />
-      </section>
+      {/* Step 1: Crop selection */}
+      {!hasResults && (
+        <section aria-label="Crop selection">
+          <CropSelector
+            selectedCrop={selectedCrop}
+            onCropSelect={handleCropSelect}
+            disabled={detecting}
+          />
+        </section>
+      )}
 
-      {/* Action buttons */}
-      {hasImages && !detecting && !hasResults && (
+      {/* Step 2: Image upload (shown after crop is selected) */}
+      {hasCrop && !hasResults && (
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          aria-label="Image upload"
+        >
+          <ImageUpload
+            images={images}
+            onImagesChange={handleImagesChange}
+            disabled={detecting}
+          />
+        </motion.section>
+      )}
+
+      {/* Analyze button */}
+      {canAnalyze && !hasResults && (
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="primary"
@@ -320,7 +309,7 @@ function DiseaseDetectionPage() {
           >
             {language === "hi"
               ? "\u0935\u093F\u0936\u094D\u0932\u0947\u0937\u0923 \u0915\u0930\u0947\u0902"
-              : "Analyze"}
+              : "Analyze with AI"}
           </Button>
           <Button variant="ghost" size="lg" onClick={handleReset}>
             {language === "hi"
@@ -335,9 +324,10 @@ function DiseaseDetectionPage() {
         {showAnalysisPanel && (
           <AIAnalysis
             stage={analysisStage}
-            stageData={analysisStageData}
+            stageData={{}}
             usingMock={usingMock}
             analysisTimeMs={analysisTimeMs}
+            modelUsed={modelUsed}
           />
         )}
       </AnimatePresence>
@@ -391,19 +381,6 @@ function DiseaseDetectionPage() {
               </>
             )}
 
-            {/* Additional predictions */}
-            {results.length > 1 && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-neutral-600">
-                  Other Possible Diseases
-                </h3>
-                <div className="space-y-4">
-                  {results.slice(1).map((r, index) => (
-                    <DetectionResult key={index} result={r} />
-                  ))}
-                </div>
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

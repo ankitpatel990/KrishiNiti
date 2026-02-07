@@ -1,7 +1,7 @@
 """
-Mandi Price API Routes
+APMC Price API Routes
 
-Endpoints for commodity price lookup, comparison, best mandi
+Endpoints for commodity price lookup, comparison, best APMC
 recommendation, trend analysis, and commodity listing.
 """
 
@@ -10,9 +10,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.database import get_db
-from app.services import mandi_service
+from app.services import apmc_service
 
-router = APIRouter(prefix="/mandi", tags=["Mandi"])
+router = APIRouter(prefix="/apmc", tags=["APMC"])
 
 
 # --------------------------------------------------------------------------
@@ -20,13 +20,13 @@ router = APIRouter(prefix="/mandi", tags=["Mandi"])
 # --------------------------------------------------------------------------
 
 @router.get("/health")
-async def mandi_health():
-    """Mandi API health check."""
-    return {"status": "healthy", "service": "Mandi API"}
+async def apmc_health():
+    """APMC API health check."""
+    return {"status": "healthy", "service": "APMC API"}
 
 
 # --------------------------------------------------------------------------
-# GET /api/mandi/commodities
+# GET /api/apmc/commodities
 # --------------------------------------------------------------------------
 
 @router.get(
@@ -34,13 +34,13 @@ async def mandi_health():
     summary="List all available commodities",
     description=(
         "Returns every distinct commodity in the database together "
-        "with summary statistics (avg/min/max price, mandi count)."
+        "with summary statistics (avg/min/max price, APMC count)."
     ),
 )
 async def get_commodities(db: Session = Depends(get_db)):
     """List all commodities with summary statistics."""
     try:
-        commodities = mandi_service.list_commodities(db)
+        commodities = apmc_service.list_commodities(db)
         return {
             "total": len(commodities),
             "commodities": commodities,
@@ -53,14 +53,14 @@ async def get_commodities(db: Session = Depends(get_db)):
 
 
 # --------------------------------------------------------------------------
-# GET /api/mandi/prices
+# GET /api/apmc/prices
 # --------------------------------------------------------------------------
 
 @router.get(
     "/prices",
-    summary="Get mandi prices by commodity",
+    summary="Get APMC prices by commodity",
     description=(
-        "Query mandi prices with optional filters on commodity, state, "
+        "Query APMC prices with optional filters on commodity, state, "
         "district, and price range. Supports pagination. "
         "When a data.gov.in API key is configured the endpoint attempts "
         "an automatic background refresh before querying."
@@ -92,15 +92,15 @@ async def get_prices(
     ),
     db: Session = Depends(get_db),
 ):
-    """Get mandi prices filtered by commodity / state / district."""
+    """Get APMC prices filtered by commodity / state / district."""
     try:
         refresh_info = None
         if refresh:
-            refresh_info = await mandi_service.refresh_prices_from_api(
+            refresh_info = await apmc_service.refresh_prices_from_api(
                 db, commodity=commodity, state=state
             )
 
-        prices, total = mandi_service.get_prices(
+        prices, total = apmc_service.get_prices(
             db,
             commodity=commodity,
             state=state,
@@ -144,45 +144,45 @@ async def get_prices(
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch mandi prices: {exc}",
+            detail=f"Failed to fetch APMC prices: {exc}",
         )
 
 
 # --------------------------------------------------------------------------
-# GET /api/mandi/compare
+# GET /api/apmc/compare
 # --------------------------------------------------------------------------
 
 @router.get(
     "/compare",
-    summary="Compare prices across mandis",
+    summary="Compare prices across APMCs",
     description=(
-        "Compare latest prices for a commodity across specified mandis. "
-        "Returns analytics (spread, best/worst mandi, statistics). "
-        "If no mandi names are given, all mandis for the commodity are compared."
+        "Compare latest prices for a commodity across specified APMCs. "
+        "Returns analytics (spread, best/worst APMC, statistics). "
+        "If no APMC names are given, all APMCs for the commodity are compared."
     ),
 )
 async def compare_prices(
     commodity: str = Query(
         ..., min_length=1, max_length=100, description="Commodity name"
     ),
-    mandis: Optional[str] = Query(
+    apmcs: Optional[str] = Query(
         None,
-        description="Comma-separated mandi names (optional; all if omitted)",
+        description="Comma-separated APMC names (optional; all if omitted)",
     ),
     state: Optional[str] = Query(
         None, max_length=100, description="State filter"
     ),
     db: Session = Depends(get_db),
 ):
-    """Compare prices for a commodity across mandis."""
+    """Compare prices for a commodity across APMCs."""
     try:
-        mandi_names = (
-            [n.strip() for n in mandis.split(",") if n.strip()]
-            if mandis
+        apmc_names = (
+            [n.strip() for n in apmcs.split(",") if n.strip()]
+            if apmcs
             else None
         )
-        result = mandi_service.compare_prices(
-            db, commodity=commodity, mandi_names=mandi_names, state=state
+        result = apmc_service.compare_prices(
+            db, commodity=commodity, mandi_names=apmc_names, state=state
         )
         return result
     except HTTPException:
@@ -195,19 +195,19 @@ async def compare_prices(
 
 
 # --------------------------------------------------------------------------
-# GET /api/mandi/best
+# GET /api/apmc/best
 # --------------------------------------------------------------------------
 
 @router.get(
     "/best",
-    summary="Get best mandi recommendation",
+    summary="Get best APMC recommendation",
     description=(
-        "Finds the best mandi for selling a commodity. "
+        "Finds the best APMC for selling a commodity. "
         "When latitude/longitude are provided, factors in transport cost "
         "to compute a net price per quintal. Results are ranked by net price."
     ),
 )
-async def get_best_mandi(
+async def get_best_apmc(
     commodity: str = Query(
         ..., min_length=1, max_length=100, description="Commodity name"
     ),
@@ -225,9 +225,9 @@ async def get_best_mandi(
     ),
     db: Session = Depends(get_db),
 ):
-    """Get best mandi recommendation based on price and distance."""
+    """Get best APMC recommendation based on price and distance."""
     try:
-        result = mandi_service.find_best_mandi(
+        result = apmc_service.find_best_apmc(
             db,
             commodity=commodity,
             user_lat=latitude,
@@ -241,12 +241,12 @@ async def get_best_mandi(
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to find best mandi: {exc}",
+            detail=f"Failed to find best APMC: {exc}",
         )
 
 
 # --------------------------------------------------------------------------
-# GET /api/mandi/trends
+# GET /api/apmc/trends
 # --------------------------------------------------------------------------
 
 @router.get(
@@ -272,7 +272,7 @@ async def get_price_trends(
 ):
     """Get price trend analysis for a commodity."""
     try:
-        result = mandi_service.get_price_trends(
+        result = apmc_service.get_price_trends(
             db, commodity=commodity, state=state, days=days
         )
         return result
@@ -282,4 +282,44 @@ async def get_price_trends(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to analyze price trends: {exc}",
+        )
+
+
+# --------------------------------------------------------------------------
+# GET /api/apmc/sell-advisory
+# --------------------------------------------------------------------------
+
+@router.get(
+    "/sell-advisory",
+    summary="Get storage vs sell recommendation",
+    description=(
+        "Analyzes current market conditions and provides a recommendation "
+        "on whether to sell immediately or store the commodity for better prices. "
+        "Also provides the best time window to sell based on historical patterns."
+    ),
+)
+async def get_sell_advisory(
+    commodity: str = Query(
+        ..., min_length=1, max_length=100, description="Commodity name"
+    ),
+    current_price: Optional[float] = Query(
+        None, ge=0, description="Current offered price (optional, uses latest market price if not provided)"
+    ),
+    state: Optional[str] = Query(
+        None, max_length=100, description="State filter for regional analysis"
+    ),
+    db: Session = Depends(get_db),
+):
+    """Get sell advisory with storage vs immediate sell recommendation."""
+    try:
+        result = apmc_service.get_sell_advisory(
+            db, commodity=commodity, current_price=current_price, state=state
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate sell advisory: {exc}",
         )

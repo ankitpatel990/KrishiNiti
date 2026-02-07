@@ -187,6 +187,7 @@ function AIAnalysis({
   stageData = {},
   usingMock = false,
   analysisTimeMs = null,
+  modelUsed = null,
   className = "",
 }) {
   const currentStepIndex = useMemo(() => stageToStepIndex(stage), [stage]);
@@ -233,7 +234,17 @@ function AIAnalysis({
                     Demo Mode
                   </Badge>
                 )}
-                {!usingMock && isComplete && (
+                {!usingMock && isComplete && modelUsed === "vit" && (
+                  <Badge variant="primary" size="sm">
+                    ViT Model
+                  </Badge>
+                )}
+                {!usingMock && isComplete && modelUsed === "mobilenet" && (
+                  <Badge variant="primary" size="sm">
+                    MobileNet Model
+                  </Badge>
+                )}
+                {!usingMock && isComplete && !modelUsed && (
                   <Badge variant="primary" size="sm">
                     AI Model
                   </Badge>
@@ -352,6 +363,7 @@ AIAnalysis.propTypes = {
   stageData: PropTypes.object,
   usingMock: PropTypes.bool,
   analysisTimeMs: PropTypes.number,
+  modelUsed: PropTypes.string,
   className: PropTypes.string,
 };
 

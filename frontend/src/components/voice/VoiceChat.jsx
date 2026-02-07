@@ -24,6 +24,7 @@ import {
 import { MicrophoneIcon as MicrophoneIconSolid } from "@heroicons/react/24/solid";
 import PropTypes from "prop-types";
 import useVoice from "@hooks/useVoice";
+import useLocation from "@hooks/useLocation";
 import {
   ConversationEngine,
   speak,
@@ -32,6 +33,7 @@ import {
   saveVoiceSettings,
   ACTIONS,
 } from "@services/voiceService";
+import { sendVoiceMessage } from "@services/voiceAssistantApi";
 import { LANGUAGES } from "@utils/constants";
 
 // ---------------------------------------------------------------------------
@@ -271,6 +273,7 @@ SettingsPanel.propTypes = {
 
 function VoiceChat({ isOpen, onClose, language }) {
   const navigate = useNavigate();
+  const locationCtx = useLocation();
   const {
     isListening,
     transcript,
@@ -287,6 +290,7 @@ function VoiceChat({ isOpen, onClose, language }) {
   const [textInput, setTextInput] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [voiceSettings, setVoiceSettings] = useState(getVoiceSettings);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -321,27 +325,66 @@ function VoiceChat({ isOpen, onClose, language }) {
   }, [transcript]);
 
   // ---------------------------------------------------------------------------
-  // Core message processing
+  // Core message processing - routes through Groq-powered backend
   // ---------------------------------------------------------------------------
 
   const handleProcessInput = useCallback(
     (text) => {
       if (!text || !text.trim()) return;
 
-      const result = engine.process(text, lang);
+      // Add user message to conversation engine and UI immediately
+      const localResult = engine.process(text, lang);
       setMessages(engine.getMessages());
 
-      if (result.action === ACTIONS.NAVIGATE && result.route) {
-        navigate(result.route);
+      // For simple navigation-only commands (home, help), handle locally
+      if (
+        localResult.action === ACTIONS.SHOW_HELP ||
+        localResult.intent === "navigate_home"
+      ) {
+        if (localResult.action === ACTIONS.NAVIGATE && localResult.route) {
+          navigate(localResult.route);
+        }
+        if (voiceSettings.autoSpeak && localResult.response) {
+          speak(localResult.response, lang, voiceSettings).catch(() => {});
+        }
+        return;
       }
 
-      if (voiceSettings.autoSpeak && result.response) {
-        speak(result.response, lang, voiceSettings).catch(() => {
-          // Non-critical
+      // For all other queries, call the Groq-powered backend
+      const location = locationCtx.hasLocation
+        ? { state: locationCtx.state, district: locationCtx.district, taluka: locationCtx.taluka }
+        : null;
+
+      setIsProcessing(true);
+
+      sendVoiceMessage({ message: text, language: lang, location })
+        .then((aiResult) => {
+          // Replace the local engine's response with the AI response
+          engine.addAssistantMessage(aiResult.response);
+          setMessages(engine.getMessages());
+
+          if (voiceSettings.autoSpeak && aiResult.response) {
+            speak(aiResult.response, lang, voiceSettings).catch(() => {});
+          }
+
+          if (aiResult.navigate_to) {
+            navigate(aiResult.navigate_to);
+          }
+        })
+        .catch(() => {
+          // Fallback: use local response if backend fails
+          if (localResult.action === ACTIONS.NAVIGATE && localResult.route) {
+            navigate(localResult.route);
+          }
+          if (voiceSettings.autoSpeak && localResult.response) {
+            speak(localResult.response, lang, voiceSettings).catch(() => {});
+          }
+        })
+        .finally(() => {
+          setIsProcessing(false);
         });
-      }
     },
-    [engine, lang, navigate, voiceSettings],
+    [engine, lang, navigate, voiceSettings, locationCtx],
   );
 
   // ---------------------------------------------------------------------------
@@ -481,6 +524,26 @@ function VoiceChat({ isOpen, onClose, language }) {
             {messages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
+
+            {/* Processing indicator */}
+            {isProcessing && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <div className="max-w-[85%] rounded-2xl rounded-bl-md px-3.5 py-2 bg-neutral-100 text-neutral-500 text-sm">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="flex gap-0.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </span>
+                    {lang === "hi" ? "सोच रहा हूँ..." : "Thinking..."}
+                  </span>
+                </div>
+              </motion.div>
+            )}
 
             {/* Interim transcript while listening */}
             {isListening && interimTranscript && (

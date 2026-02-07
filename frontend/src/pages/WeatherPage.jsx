@@ -2,7 +2,7 @@
  * WeatherPage - Comprehensive weather dashboard.
  *
  * Orchestrates:
- *  1. Pincode entry / geolocation detection via LocationInput
+ *  1. Cascading State / District / Taluka selection via LocationInput
  *  2. Fetch 7-day forecast from backend (with localStorage caching)
  *  3. Fetch farming alerts + crop-specific analysis
  *  4. Display CurrentWeather, WeeklyForecast, WeatherAlerts, FarmingAdvice
@@ -31,7 +31,6 @@ import {
   Select,
 } from "@components/common";
 import useApp from "@hooks/useApp";
-import useLocation from "@hooks/useLocation";
 import api, { API_V1 } from "@services/api";
 import { getForecast, getAlerts } from "@services/weatherApi";
 import { SUPPORTED_CROPS, WEATHER_CACHE_DURATION_MS } from "@utils/constants";
@@ -43,8 +42,8 @@ import storage from "@utils/storage";
 
 const CACHE_PREFIX = "farmhelp_weather_";
 
-function getCacheKey(pincode) {
-  return `${CACHE_PREFIX}${pincode}`;
+function getCacheKey(location) {
+  return `${CACHE_PREFIX}${location.state}_${location.district}_${location.taluka}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -60,20 +59,22 @@ const CROP_OPTIONS = SUPPORTED_CROPS.map((crop) => ({
 // FarmingAdviceSection (isolated to allow independent loading)
 // ---------------------------------------------------------------------------
 
-function FarmingAdviceSection({ pincode, cropType }) {
+function FarmingAdviceSection({ location, cropType }) {
   const [analysis, setAnalysis] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const reqIdRef = useRef(0);
 
   useEffect(() => {
-    if (!pincode || !cropType) return;
+    if (!location || !cropType) return;
 
     const currentId = ++reqIdRef.current;
     setAnalysisLoading(true);
 
     api
       .post(`${API_V1}/weather/analyze`, {
-        pincode,
+        state: location.state,
+        district: location.district,
+        taluka: location.taluka,
         crop_type: cropType,
       })
       .then(({ data }) => {
@@ -89,7 +90,7 @@ function FarmingAdviceSection({ pincode, cropType }) {
           setAnalysisLoading(false);
         }
       });
-  }, [pincode, cropType]);
+  }, [location, cropType]);
 
   if (analysisLoading) {
     return (
@@ -114,12 +115,20 @@ function FarmingAdviceSection({ pincode, cropType }) {
       cropType={cropType}
       cropSuitability={analysis.crop_suitability}
       cropProfile={analysis.crop_profile}
+      historicalComparison={analysis.historical_comparison}
+      soilData={analysis.soil_data}
+      govtAdvisory={analysis.govt_advisory}
+      aiPowered={analysis.ai_powered}
     />
   );
 }
 
 FarmingAdviceSection.propTypes = {
-  pincode: PropTypes.string.isRequired,
+  location: PropTypes.shape({
+    state: PropTypes.string.isRequired,
+    district: PropTypes.string.isRequired,
+    taluka: PropTypes.string.isRequired,
+  }),
   cropType: PropTypes.string.isRequired,
 };
 
@@ -129,20 +138,14 @@ FarmingAdviceSection.propTypes = {
 
 function WeatherPage() {
   const { language } = useApp();
-  const {
-    pincode: savedPincode,
-    setPincode: saveGlobalPincode,
-    detectLocation,
-    isLoading: detectingLocation,
-    error: locationError,
-    clearError: clearLocationError,
-  } = useLocation();
+
+  // Active location (the one for which data is displayed)
+  const [activeLocation, setActiveLocation] = useState(null);
 
   // Weather data
   const [forecastData, setForecastData] = useState(null);
   const [alertsData, setAlertsData] = useState(null);
   const [locationInfo, setLocationInfo] = useState(null);
-  const [activePincode, setActivePincode] = useState("");
 
   // Crop selection
   const [selectedCrop, setSelectedCrop] = useState("Paddy");
@@ -159,18 +162,18 @@ function WeatherPage() {
   // -------------------------------------------------------------------
 
   const fetchWeatherData = useCallback(
-    async (pincode, { forceRefresh = false } = {}) => {
+    async (location, { forceRefresh = false } = {}) => {
       const currentRequestId = ++requestIdRef.current;
 
       // Check cache
       if (!forceRefresh) {
-        const cached = storage.getWithTTL(getCacheKey(pincode));
+        const cached = storage.getWithTTL(getCacheKey(location));
         if (cached) {
           if (requestIdRef.current !== currentRequestId) return;
           setForecastData(cached.forecast);
           setAlertsData(cached.alerts);
           setLocationInfo(cached.location);
-          setActivePincode(pincode);
+          setActiveLocation(location);
           setLastRefresh(cached.cachedAt);
           setError(null);
           return;
@@ -182,31 +185,29 @@ function WeatherPage() {
 
       try {
         const [forecastResult, alertsResult] = await Promise.all([
-          getForecast(pincode),
-          getAlerts(pincode, { cropType: selectedCrop }).catch(() => null),
+          getForecast(location),
+          getAlerts(location, { cropType: selectedCrop }).catch(() => null),
         ]);
 
         if (requestIdRef.current !== currentRequestId) return;
 
         const forecast = forecastResult.forecast || forecastResult;
-        const location = forecastResult.location || null;
+        const loc = forecastResult.location || null;
         const alerts = alertsResult?.alerts || [];
 
         setForecastData(forecast);
         setAlertsData(alerts);
-        setLocationInfo(location);
-        setActivePincode(pincode);
+        setLocationInfo(loc);
+        setActiveLocation(location);
 
         const now = new Date().toISOString();
         setLastRefresh(now);
 
         storage.setWithTTL(
-          getCacheKey(pincode),
-          { forecast, alerts, location, cachedAt: now },
+          getCacheKey(location),
+          { forecast, alerts, location: loc, cachedAt: now },
           WEATHER_CACHE_DURATION_MS,
         );
-
-        saveGlobalPincode(pincode);
       } catch (err) {
         if (requestIdRef.current !== currentRequestId) return;
         setError(
@@ -218,41 +219,33 @@ function WeatherPage() {
         }
       }
     },
-    [selectedCrop, saveGlobalPincode],
+    [selectedCrop],
   );
-
-  // Auto-load on mount if pincode exists
-  useEffect(() => {
-    if (savedPincode && !forecastData && !loading) {
-      fetchWeatherData(savedPincode);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // -------------------------------------------------------------------
   // Handlers
   // -------------------------------------------------------------------
 
-  const handlePincodeSubmit = useCallback(
-    (pincode) => {
-      fetchWeatherData(pincode);
+  const handleLocationSubmit = useCallback(
+    (location) => {
+      fetchWeatherData(location);
     },
     [fetchWeatherData],
   );
 
   const handleRefresh = useCallback(() => {
-    if (activePincode) {
-      fetchWeatherData(activePincode, { forceRefresh: true });
+    if (activeLocation) {
+      fetchWeatherData(activeLocation, { forceRefresh: true });
     }
-  }, [activePincode, fetchWeatherData]);
+  }, [activeLocation, fetchWeatherData]);
 
   const handleCropChange = useCallback(
     (e) => {
       const crop = e.target.value;
       setSelectedCrop(crop);
 
-      if (activePincode) {
-        getAlerts(activePincode, { cropType: crop })
+      if (activeLocation) {
+        getAlerts(activeLocation, { cropType: crop })
           .then((result) => {
             setAlertsData(result?.alerts || []);
           })
@@ -261,13 +254,8 @@ function WeatherPage() {
           });
       }
     },
-    [activePincode],
+    [activeLocation],
   );
-
-  const handleDetectLocation = useCallback(() => {
-    clearLocationError();
-    detectLocation();
-  }, [detectLocation, clearLocationError]);
 
   const handleDismissError = useCallback(() => {
     setError(null);
@@ -303,25 +291,18 @@ function WeatherPage() {
         </div>
         <p className="text-neutral-600 max-w-2xl">
           {language === "hi"
-            ? "\u0905\u092A\u0928\u093E \u092A\u093F\u0928\u0915\u094B\u0921 \u0926\u0930\u094D\u091C \u0915\u0930\u0947\u0902 \u0914\u0930 7 \u0926\u093F\u0928\u094B\u0902 \u0915\u093E \u092E\u094C\u0938\u092E \u092A\u0942\u0930\u094D\u0935\u093E\u0928\u0941\u092E\u093E\u0928, \u0916\u0947\u0924\u0940 \u0938\u0932\u093E\u0939 \u0914\u0930 \u091A\u0947\u0924\u093E\u0935\u0928\u0940 \u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930\u0947\u0902\u0964"
-            : "Enter your pincode to get a 7-day forecast, farming advice, and weather alerts tailored for your crops."}
+            ? "\u0905\u092A\u0928\u093E \u0924\u093E\u0932\u0941\u0915\u093E \u091A\u0941\u0928\u0947\u0902 \u0914\u0930 7 \u0926\u093F\u0928\u094B\u0902 \u0915\u093E \u092E\u094C\u0938\u092E \u092A\u0942\u0930\u094D\u0935\u093E\u0928\u0941\u092E\u093E\u0928, \u0916\u0947\u0924\u0940 \u0938\u0932\u093E\u0939 \u0914\u0930 \u091A\u0947\u0924\u093E\u0935\u0928\u0940 \u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930\u0947\u0902\u0964"
+            : "Select your location to get a 7-day forecast, farming advice, and weather alerts tailored for your crops."}
         </p>
       </div>
 
       {/* Location input */}
       <section aria-label="Location input">
         <LocationInput
-          onSubmit={handlePincodeSubmit}
-          initialPincode={savedPincode}
+          onSubmit={handleLocationSubmit}
+          initialLocation={activeLocation}
           loading={loading}
-          detectingLocation={detectingLocation}
-          onDetectLocation={handleDetectLocation}
         />
-        {locationError && (
-          <p className="mt-2 text-sm text-danger-600" role="alert">
-            {locationError}
-          </p>
-        )}
       </section>
 
       {/* Loading state */}
@@ -403,7 +384,7 @@ function WeatherPage() {
 
             {/* Farming advice (independent fetch) */}
             <FarmingAdviceSection
-              pincode={activePincode}
+              location={activeLocation}
               cropType={selectedCrop}
             />
           </motion.div>

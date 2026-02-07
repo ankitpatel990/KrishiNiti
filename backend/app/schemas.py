@@ -123,38 +123,39 @@ class DiseaseSearchRequest(BaseModel):
 # Weather Schemas
 class WeatherForecastRequest(BaseModel):
     """Schema for weather forecast request"""
-    pincode: str = Field(..., min_length=6, max_length=10, pattern=r'^\d+$', description="Indian postal code (6 digits)")
-    
-    @validator('pincode')
-    def validate_pincode(cls, v):
-        """Validate pincode is 6 digits"""
-        if len(v) != 6 or not v.isdigit():
-            raise ValueError('Pincode must be exactly 6 digits')
-        return v
-    
+    state: str = Field(..., min_length=1, max_length=100, description="Indian state name")
+    district: str = Field(..., min_length=1, max_length=100, description="District name")
+    taluka: str = Field(..., min_length=1, max_length=100, description="Taluka name")
+
     class Config:
         json_schema_extra = {
             "example": {
-                "pincode": "110001"
+                "state": "Gujarat",
+                "district": "Rajkot",
+                "taluka": "Jetpur"
             }
         }
 
 
 class WeatherForecastResponse(BaseModel):
     """Schema for weather forecast response"""
-    pincode: str = Field(..., description="Requested pincode")
+    taluka: str = Field(..., description="Requested taluka")
+    district: str = Field(..., description="District name")
+    state: str = Field(..., description="State name")
     latitude: float = Field(..., ge=-90, le=90, description="Latitude coordinate")
     longitude: float = Field(..., ge=-180, le=180, description="Longitude coordinate")
     forecast: dict = Field(..., description="7-day weather forecast data")
     cached: bool = Field(False, description="Whether data was served from cache")
     cached_at: Optional[datetime] = Field(None, description="When data was cached")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
-                "pincode": "110001",
-                "latitude": 28.6139,
-                "longitude": 77.2090,
+                "taluka": "Jetpur",
+                "district": "Rajkot",
+                "state": "Gujarat",
+                "latitude": 21.7553,
+                "longitude": 70.6203,
                 "forecast": {
                     "daily": {
                         "temperature_2m_max": [25, 26, 27],
@@ -170,20 +171,26 @@ class WeatherForecastResponse(BaseModel):
 
 class WeatherAlertRequest(BaseModel):
     """Schema for weather alert request"""
-    pincode: str = Field(..., min_length=6, max_length=10, pattern=r'^\d+$')
+    state: str = Field(..., min_length=1, max_length=100, description="Indian state name")
+    district: str = Field(..., min_length=1, max_length=100, description="District name")
+    taluka: str = Field(..., min_length=1, max_length=100, description="Taluka name")
     crop_type: Optional[str] = Field(None, max_length=100, description="Crop type for crop-specific alerts")
 
 
 class WeatherAlertResponse(BaseModel):
     """Schema for weather alert response"""
-    pincode: str
+    taluka: str
+    district: str
+    state: str
     alerts: List[dict] = Field(default_factory=list, description="List of weather alerts")
     severity: str = Field(..., description="Highest alert severity (info, warning, danger)")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
-                "pincode": "110001",
+                "taluka": "Jetpur",
+                "district": "Rajkot",
+                "state": "Gujarat",
                 "alerts": [
                     {
                         "type": "dry_spell",
@@ -199,12 +206,23 @@ class WeatherAlertResponse(BaseModel):
 
 class CropWeatherAnalysisRequest(BaseModel):
     """Schema for crop weather analysis request (POST /api/weather/analyze)"""
-    pincode: str = Field(
+    state: str = Field(
         ...,
-        min_length=6,
-        max_length=6,
-        pattern=r'^\d{6}$',
-        description="6-digit Indian pincode",
+        min_length=1,
+        max_length=100,
+        description="Indian state name",
+    )
+    district: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="District name",
+    )
+    taluka: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Taluka name",
     )
     crop_type: str = Field(
         ...,
@@ -213,17 +231,12 @@ class CropWeatherAnalysisRequest(BaseModel):
         description="Crop type for weather analysis",
     )
 
-    @validator('pincode')
-    def validate_pincode(cls, v):
-        """Validate pincode is 6 digits"""
-        if len(v) != 6 or not v.isdigit():
-            raise ValueError('Pincode must be exactly 6 digits')
-        return v
-
     class Config:
         json_schema_extra = {
             "example": {
-                "pincode": "110001",
+                "state": "Gujarat",
+                "district": "Rajkot",
+                "taluka": "Jetpur",
                 "crop_type": "Paddy"
             }
         }
@@ -370,3 +383,87 @@ class SuccessResponse(BaseModel):
     """Schema for success responses"""
     message: str
     data: Optional[dict] = None
+
+
+# Government Schemes Schemas
+class GovernmentSchemeBase(BaseModel):
+    """Base schema for government scheme"""
+    scheme_code: str = Field(..., min_length=1, max_length=50, description="Unique scheme code")
+    scheme_name: str = Field(..., min_length=1, max_length=200, description="Scheme name in English")
+    scheme_name_hindi: Optional[str] = Field(None, max_length=200, description="Scheme name in Hindi")
+    scheme_type: str = Field(..., min_length=1, max_length=50, description="Type of scheme (subsidy/insurance/credit/direct_benefit/price_support/market_access/electricity)")
+    state_specific: bool = Field(False, description="Whether scheme is state-specific")
+    applicable_states: Optional[List[str]] = Field(default_factory=list, description="List of applicable states (empty for national schemes)")
+    description: str = Field(..., min_length=10, description="Detailed description of the scheme")
+    description_hindi: Optional[str] = Field(None, description="Description in Hindi")
+    benefit_amount: Optional[str] = Field(None, max_length=200, description="Benefit amount or range")
+    eligibility_criteria: Optional[dict] = Field(None, description="Eligibility criteria as JSON")
+    required_documents: Optional[List[str]] = Field(default_factory=list, description="List of required documents")
+    application_process: Optional[str] = Field(None, description="Application process details")
+    application_url: Optional[str] = Field(None, max_length=500, description="URL for online application")
+    helpline_number: Optional[str] = Field(None, max_length=50, description="Helpline contact number")
+    deadline_type: Optional[str] = Field(None, max_length=20, description="Type of deadline (rolling/seasonal/fixed/event_based)")
+    deadline_date: Optional[str] = Field(None, max_length=100, description="Deadline date or description")
+    key_features: Optional[List[str]] = Field(default_factory=list, description="List of key features")
+    is_active: bool = Field(True, description="Whether scheme is currently active")
+    last_updated: Optional[str] = Field(None, max_length=20, description="Last update date")
+
+
+class GovernmentSchemeResponse(GovernmentSchemeBase):
+    """Schema for government scheme response"""
+    id: int = Field(..., description="Unique scheme ID")
+    created_at: datetime = Field(..., description="Record creation timestamp")
+    updated_at: Optional[datetime] = Field(None, description="Record last update timestamp")
+
+    class Config:
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "scheme_code": "PM_KISAN",
+                "scheme_name": "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+                "scheme_name_hindi": "प्रधानमंत्री किसान सम्मान निधि",
+                "scheme_type": "direct_benefit",
+                "state_specific": False,
+                "applicable_states": [],
+                "description": "Direct income support scheme providing ₹6,000 per year",
+                "benefit_amount": "₹6,000 per year",
+                "eligibility_criteria": {"land_holding": "up to 2 hectares"},
+                "required_documents": ["Aadhaar Card", "Land records"],
+                "application_url": "https://pmkisan.gov.in/",
+                "helpline_number": "155261",
+                "deadline_type": "rolling",
+                "is_active": True,
+                "created_at": "2024-01-01T00:00:00Z"
+            }
+        }
+
+
+class GovernmentSchemeListResponse(BaseModel):
+    """Schema for list of government schemes"""
+    total: int = Field(..., description="Total number of schemes")
+    schemes: List[GovernmentSchemeResponse] = Field(..., description="List of government schemes")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "total": 12,
+                "schemes": []
+            }
+        }
+
+
+class SchemeFilterRequest(BaseModel):
+    """Schema for scheme filter request"""
+    scheme_type: Optional[str] = Field(None, max_length=50, description="Filter by scheme type")
+    state: Optional[str] = Field(None, max_length=100, description="Filter by state (for state-specific schemes)")
+    is_active: Optional[bool] = Field(True, description="Filter by active status")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "scheme_type": "subsidy",
+                "state": "Gujarat",
+                "is_active": True
+            }
+        }

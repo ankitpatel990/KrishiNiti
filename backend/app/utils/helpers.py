@@ -6,8 +6,10 @@ Utility functions shared across the application:
 - Date/time helpers
 - String sanitisers
 - Distance calculator (Haversine)
+- JSON field serialization
 """
 
+import json
 import math
 import re
 import uuid
@@ -200,3 +202,49 @@ def safe_float(value: Any, default: float = 0.0) -> float:
 def chunk_list(items: List[Any], size: int) -> List[List[Any]]:
     """Split a list into chunks of the given size."""
     return [items[i : i + size] for i in range(0, len(items), size)]
+
+
+# ---------------------------------------------------------------------------
+# JSON Field Serialization
+# ---------------------------------------------------------------------------
+
+def serialize_json_field(field_value: Optional[str]) -> Any:
+    """
+    Deserialize a JSON string field from database to Python object.
+    
+    Args:
+        field_value: JSON string from database field
+        
+    Returns:
+        Deserialized Python object (dict, list, etc.) or empty dict/list on error
+    """
+    if not field_value:
+        return []
+    
+    try:
+        return json.loads(field_value)
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+
+# ---------------------------------------------------------------------------
+# JSON Field Serialization
+# ---------------------------------------------------------------------------
+
+def serialize_json_field(field_value: Optional[str]) -> Any:
+    """
+    Deserialize a JSON string field from database to Python object.
+    
+    Args:
+        field_value: JSON string from database field
+        
+    Returns:
+        Deserialized Python object (dict, list, etc.) or empty dict/list on error
+    """
+    if not field_value:
+        return []
+    
+    try:
+        return json.loads(field_value)
+    except (json.JSONDecodeError, TypeError):
+        return []

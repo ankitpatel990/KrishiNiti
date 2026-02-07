@@ -3,8 +3,8 @@
  * and recent activity feed.
  *
  * Serves as the landing page after login / initial load. Provides
- * quick access to all three core features (Disease Detection,
- * Weather Forecast, Mandi Prices) plus a recent activity timeline.
+ * quick access to all four core features (Disease Detection,
+ * Weather Forecast, APMC Price, Schemes) plus a recent activity timeline.
  */
 
 import { useState, useCallback, useMemo } from "react";
@@ -20,6 +20,7 @@ import {
   BoltIcon,
   SignalIcon,
   SignalSlashIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { Card } from "@components/common";
 import { ROUTES } from "@utils/constants";
@@ -58,29 +59,42 @@ const FEATURES = [
     iconBg: "bg-accent-100",
   },
   {
-    key: "mandi",
-    title: "Mandi Prices",
+    key: "apmc",
+    title: "APMC Price",
     description:
-      "Compare real-time commodity prices across mandis, find the best selling market, and track price trends.",
-    route: ROUTES.MANDI,
+      "Compare real-time commodity prices across APMCs, find the best selling market, and track price trends.",
+    route: ROUTES.APMC,
     Icon: CurrencyRupeeIcon,
     color: "secondary",
     bgClass: "bg-secondary-50",
     textClass: "text-secondary-700",
     iconBg: "bg-secondary-100",
   },
+  {
+    key: "schemes",
+    title: "Government Schemes",
+    description:
+      "Explore national and state-specific schemes with complete details on benefits, eligibility, and application process.",
+    route: ROUTES.SCHEMES,
+    Icon: DocumentTextIcon,
+    color: "success",
+    bgClass: "bg-green-50",
+    textClass: "text-green-700",
+    iconBg: "bg-green-100",
+  },
 ];
 
 const SEARCH_ROUTES = [
   { keywords: ["disease", "crop", "plant", "leaf", "detect", "photo", "scan"], route: ROUTES.DISEASE_DETECTION },
   { keywords: ["weather", "rain", "temperature", "forecast", "wind", "humidity"], route: ROUTES.WEATHER },
-  { keywords: ["mandi", "price", "market", "sell", "buy", "commodity", "rate"], route: ROUTES.MANDI },
+  { keywords: ["apmc", "mandi", "price", "market", "sell", "buy", "commodity", "rate"], route: ROUTES.APMC },
+  { keywords: ["scheme", "schemes", "government", "subsidy", "insurance", "benefit", "yojana"], route: ROUTES.SCHEMES },
 ];
 
 const ACTIVITY_ICONS = {
   [ACTIVITY_TYPES.DISEASE]: CameraIcon,
   [ACTIVITY_TYPES.WEATHER]: CloudIcon,
-  [ACTIVITY_TYPES.MANDI]: CurrencyRupeeIcon,
+  [ACTIVITY_TYPES.APMC]: CurrencyRupeeIcon,
   [ACTIVITY_TYPES.VOICE]: BoltIcon,
   [ACTIVITY_TYPES.SEARCH]: MagnifyingGlassIcon,
 };
@@ -88,7 +102,7 @@ const ACTIVITY_ICONS = {
 const ACTIVITY_COLORS = {
   [ACTIVITY_TYPES.DISEASE]: "text-primary-600 bg-primary-50",
   [ACTIVITY_TYPES.WEATHER]: "text-accent-600 bg-accent-50",
-  [ACTIVITY_TYPES.MANDI]: "text-secondary-600 bg-secondary-50",
+  [ACTIVITY_TYPES.APMC]: "text-secondary-600 bg-secondary-50",
   [ACTIVITY_TYPES.VOICE]: "text-purple-600 bg-purple-50",
   [ACTIVITY_TYPES.SEARCH]: "text-neutral-600 bg-neutral-100",
 };
@@ -158,7 +172,7 @@ function QuickSearch({ onSearch }) {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search features... (e.g. crop disease, weather, mandi prices)"
+        placeholder="Search features... (e.g. crop disease, weather, APMC prices)"
         className="w-full rounded-xl border border-neutral-200 bg-white py-3 pl-11 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
         aria-label="Search"
       />
@@ -351,7 +365,7 @@ function HomePage() {
       <QuickStats />
 
       {/* Feature Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         {FEATURES.map((feature) => (
           <FeatureCard key={feature.key} feature={feature} />
         ))}

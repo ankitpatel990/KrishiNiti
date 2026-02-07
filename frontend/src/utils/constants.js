@@ -36,8 +36,8 @@ export const WEATHER_CACHE_DURATION_MS = Number(
   import.meta.env.VITE_WEATHER_CACHE_DURATION_MS || 300000,
 );
 
-export const MANDI_CACHE_DURATION_MS = Number(
-  import.meta.env.VITE_MANDI_CACHE_DURATION_MS || 600000,
+export const APMC_CACHE_DURATION_MS = Number(
+  import.meta.env.VITE_APMC_CACHE_DURATION_MS || 600000,
 );
 
 // ---------------------------------------------------------------------------
@@ -58,6 +58,8 @@ export const SUPPORTED_CROPS = [
   "Wheat",
   "Cotton",
   "Sugarcane",
+  "Groundnut",
+  "Cumin",
   "Tomato",
   "Potato",
   "Onion",
@@ -124,6 +126,7 @@ export const DEFAULT_LANGUAGE = LANGUAGES.EN;
 export const STORAGE_KEYS = {
   LANGUAGE: "farmhelp_language",
   PINCODE: "farmhelp_pincode",
+  LOCATION: "farmhelp_location",
   RECENT_SEARCHES: "farmhelp_recent_searches",
   RECENT_ACTIVITY: "farmhelp_recent_activity",
   THEME: "farmhelp_theme",
@@ -141,7 +144,8 @@ export const ROUTES = {
   HOME: "/",
   DISEASE_DETECTION: "/disease",
   WEATHER: "/weather",
-  MANDI: "/mandi",
+  APMC: "/apmc",
+  SCHEMES: "/schemes",
 };
 
 // ---------------------------------------------------------------------------

@@ -28,6 +28,7 @@ import {
 import PropTypes from "prop-types";
 import useVoice from "@hooks/useVoice";
 import useApp from "@hooks/useApp";
+import useLocation from "@hooks/useLocation";
 import {
   parseCommand,
   speak,
@@ -38,6 +39,7 @@ import {
   getVoiceSettings,
   INTENTS,
 } from "@services/voiceService";
+import { sendVoiceMessage } from "@services/voiceAssistantApi";
 import VoiceTranscript from "./VoiceTranscript";
 import VoiceCommands from "./VoiceCommands";
 import VoiceChat from "./VoiceChat";
@@ -57,9 +59,23 @@ const RESULT_DISPLAY_DURATION_MS = 4000;
 // Component
 // ---------------------------------------------------------------------------
 
+/** Intents that benefit from Groq-powered backend responses. */
+const DATA_INTENTS = new Set([
+  INTENTS.QUERY_WEATHER_TIME,
+  INTENTS.NAVIGATE_WEATHER,
+  INTENTS.QUERY_CROP_PRICE,
+  INTENTS.NAVIGATE_APMC,
+  INTENTS.QUERY_DISEASE_TREATMENT,
+  INTENTS.NAVIGATE_DISEASE,
+  INTENTS.COMPARE_PRICES,
+  INTENTS.READ_ALERTS,
+  INTENTS.BEST_APMC,
+]);
+
 function VoiceButton({ className = "" }) {
   const navigate = useNavigate();
   const { language } = useApp();
+  const locationCtx = useLocation();
   const {
     isSupported,
     isListening,
@@ -96,21 +112,74 @@ function VoiceButton({ className = "" }) {
     const result = parseCommand(transcript, language);
     setCommandResult(result);
 
+    // Navigation-only commands (home, help)
     if (result.intent !== INTENTS.UNKNOWN && result.confidence >= 0.5) {
       if (result.intent === INTENTS.SHOW_HELP) {
         setShowCommands(true);
-      } else if (result.route) {
-        navigate(result.route);
+        const settings = getVoiceSettings();
+        if (settings.autoSpeak) {
+          speak(result.response, language, settings).catch(() => {});
+        }
+        return;
       }
+    }
+
+    // For data-driven intents, call the Groq-powered backend
+    if (DATA_INTENTS.has(result.intent) && result.confidence >= 0.5) {
+      const location = locationCtx.hasLocation
+        ? { state: locationCtx.state, district: locationCtx.district, taluka: locationCtx.taluka }
+        : null;
+
+      // Show loading state
+      setCommandResult({
+        ...result,
+        response: language === "hi" ? "जानकारी ला रहा हूँ..." : "Fetching information...",
+      });
+
+      sendVoiceMessage({ message: transcript, language, location })
+        .then((aiResult) => {
+          setCommandResult({
+            intent: result.intent,
+            confidence: result.confidence,
+            route: aiResult.navigate_to || result.route,
+            response: aiResult.response,
+          });
+
+          const settings = getVoiceSettings();
+          if (settings.autoSpeak) {
+            speak(aiResult.response, language, settings).catch(() => {});
+          }
+
+          // Navigate after speaking if a route is suggested
+          if (aiResult.navigate_to) {
+            navigate(aiResult.navigate_to);
+          }
+        })
+        .catch(() => {
+          // Fallback: navigate and speak the basic response
+          setCommandResult(result);
+          if (result.route) {
+            navigate(result.route);
+          }
+          const settings = getVoiceSettings();
+          if (settings.autoSpeak) {
+            speak(result.response, language, settings).catch(() => {});
+          }
+        });
+
+      return;
+    }
+
+    // Non-data intents: navigate and speak directly
+    if (result.intent !== INTENTS.UNKNOWN && result.confidence >= 0.5 && result.route) {
+      navigate(result.route);
     }
 
     const settings = getVoiceSettings();
     if (settings.autoSpeak) {
-      speak(result.response, language, settings).catch(() => {
-        // TTS failure is non-critical
-      });
+      speak(result.response, language, settings).catch(() => {});
     }
-  }, [transcript, language, navigate, showChat]);
+  }, [transcript, language, navigate, showChat, locationCtx]);
 
   // ---------------------------------------------------------------------------
   // Show / hide transcript panel alongside listening state

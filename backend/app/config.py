@@ -31,10 +31,11 @@ class Settings(BaseSettings):
     OPEN_METEO_API_URL: str = "https://api.open-meteo.com/v1/forecast"
     DATA_GOV_IN_API_URL: str = "https://api.data.gov.in/resource"
     DATA_GOV_IN_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
 
     # Cache Settings
     WEATHER_CACHE_HOURS: int = 6
-    MANDI_CACHE_HOURS: int = 24
+    APMC_CACHE_HOURS: int = 24
 
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60

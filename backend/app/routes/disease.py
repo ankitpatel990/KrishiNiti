@@ -2,17 +2,19 @@
 Disease Treatment API Routes
 
 Endpoints:
-    POST /api/disease/treatment  - Get treatment by disease name
-    POST /api/disease/detect     - Simulate AI disease detection
-    GET  /api/disease/list       - List all diseases (with filters)
-    GET  /api/disease/{id}       - Get disease details by ID
+    POST /api/disease/treatment       - Get treatment by disease name
+    POST /api/disease/detect          - AI disease detection from image
+    GET  /api/disease/supported-crops - List crops supported by AI models
+    GET  /api/disease/model-status    - AI model loading status
+    GET  /api/disease/list            - List all diseases (with filters)
+    GET  /api/disease/{id}            - Get disease details by ID
 """
 
 import logging
 import time
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -29,10 +31,18 @@ from app.services.disease_service import (
     list_diseases,
     build_treatment_response,
 )
+from app.services.plant_disease_model import (
+    predict as ai_predict,
+    get_supported_crops,
+    get_model_status,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/disease", tags=["Disease"])
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 # ---------------------------------------------------------------------------
@@ -118,19 +128,47 @@ async def get_treatment(
 
 
 # ---------------------------------------------------------------------------
+# GET /api/disease/supported-crops
+# ---------------------------------------------------------------------------
+@router.get(
+    "/supported-crops",
+    summary="List crops supported by AI disease detection models",
+    description="Returns the list of crop types that can be analyzed by the AI models.",
+    responses={200: {"description": "Supported crop list"}},
+)
+async def list_supported_crops():
+    return {"crops": get_supported_crops()}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/disease/model-status
+# ---------------------------------------------------------------------------
+@router.get(
+    "/model-status",
+    summary="AI model loading status",
+    description="Returns the current loading status of both disease detection models.",
+    responses={200: {"description": "Model status"}},
+)
+async def model_status():
+    return get_model_status()
+
+
+# ---------------------------------------------------------------------------
 # POST /api/disease/detect
 # ---------------------------------------------------------------------------
 @router.post(
     "/detect",
-    summary="Simulate AI disease detection from image",
+    summary="AI disease detection from image",
     description=(
-        "Placeholder endpoint that simulates AI-based disease detection. "
-        "In production this will accept an image and run inference with "
-        "TensorFlow.js / a server-side model. Currently returns mock results."
+        "Upload a crop leaf image and a crop type to run real AI-powered "
+        "disease detection. Returns top predictions with confidence scores "
+        "and treatment information from the database when available."
     ),
     responses={
-        200: {"description": "Detection results (simulated)"},
+        200: {"description": "Detection results"},
         400: {"model": ErrorResponse, "description": "Invalid input"},
+        422: {"model": ErrorResponse, "description": "Unsupported crop type"},
+        500: {"model": ErrorResponse, "description": "Model inference error"},
     },
 )
 async def detect_disease(
@@ -139,47 +177,109 @@ async def detect_disease(
         min_length=1,
         max_length=100,
         description="Type of crop in the image",
-        examples=["Paddy", "Wheat", "Cotton"],
+        examples=["Paddy", "Wheat", "Tomato", "Potato"],
+    ),
+    image: UploadFile = File(
+        ...,
+        description="Leaf/plant image (JPEG, PNG, or WebP, max 10 MB)",
     ),
     db: Session = Depends(get_db),
 ):
-    """
-    Simulated AI detection. Returns mock predictions drawn from the
-    database for the given crop type.
-    """
-    logger.info("Disease detection request | crop_type=%s", crop_type)
+    start = time.perf_counter()
 
-    diseases, total = list_diseases(db, crop_type=crop_type, limit=3, offset=0)
-
-    if not diseases:
+    # --- validate file type ---
+    if image.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No diseases found for crop type '{crop_type}'",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Unsupported image type '{image.content_type}'. "
+                f"Accepted types: JPEG, PNG, WebP."
+            ),
         )
 
-    # Simulate confidence scores (descending)
-    confidence_values = [0.92, 0.78, 0.45]
-    predictions = []
-    for idx, disease in enumerate(diseases):
-        confidence = confidence_values[idx] if idx < len(confidence_values) else 0.10
-        predictions.append(
-            {
-                "disease_id": disease.id,
-                "disease_name": disease.disease_name,
-                "disease_name_hindi": disease.disease_name_hindi,
-                "confidence": confidence,
-                "treatment_summary": {
-                    "chemical": disease.treatment_chemical,
-                    "organic": disease.treatment_organic,
-                },
-            }
+    # --- read and validate size ---
+    image_bytes = await image.read()
+    if len(image_bytes) > MAX_IMAGE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Image exceeds the 10 MB size limit.",
         )
+
+    if len(image_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty.",
+        )
+
+    logger.info(
+        "Disease detection request | crop_type=%s size=%d bytes",
+        crop_type,
+        len(image_bytes),
+    )
+
+    # --- run AI inference ---
+    try:
+        raw_predictions = ai_predict(image_bytes, crop_type, top_k=3)
+    except Exception as exc:
+        logger.error("Model inference failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Disease detection model failed. Please try again later.",
+        )
+
+    # --- enrich predictions with DB treatment info ---
+    predictions = []
+    for pred in raw_predictions:
+        disease_name = pred["disease_name"]
+        confidence = pred["confidence"]
+        pred_crop = pred["crop_type"]
+
+        # Try to find treatment in our DB via fuzzy search
+        db_matches = search_diseases(db, query=disease_name, crop_type=None, limit=1)
+        treatment_info = {}
+        if db_matches:
+            best_match, score = db_matches[0]
+            treatment_info = {
+                "disease_name_hindi": best_match.disease_name_hindi or "",
+                "symptoms": best_match.symptoms or "",
+                "affected_stages": best_match.affected_stages or "",
+                "treatment_chemical": best_match.treatment_chemical or "",
+                "treatment_organic": best_match.treatment_organic or "",
+                "dosage": best_match.dosage or "",
+                "cost_per_acre": best_match.cost_per_acre or 0,
+                "prevention_tips": best_match.prevention_tips or "",
+                "db_match_score": round(score, 3),
+            }
+
+        predictions.append({
+            "disease_name": disease_name,
+            "disease_name_hindi": treatment_info.get("disease_name_hindi", ""),
+            "crop_type": pred_crop,
+            "confidence": confidence,
+            "symptoms": treatment_info.get("symptoms", ""),
+            "affected_stages": treatment_info.get("affected_stages", ""),
+            "treatment_chemical": treatment_info.get("treatment_chemical", ""),
+            "treatment_organic": treatment_info.get("treatment_organic", ""),
+            "dosage": treatment_info.get("dosage", ""),
+            "cost_per_acre": treatment_info.get("cost_per_acre", 0),
+            "prevention_tips": treatment_info.get("prevention_tips", ""),
+            "model_used": pred.get("model", ""),
+            "raw_label": pred.get("raw_label", ""),
+        })
+
+    elapsed = round((time.perf_counter() - start) * 1000, 2)
+    logger.info(
+        "Detection complete | crop_type=%s predictions=%d time=%sms",
+        crop_type,
+        len(predictions),
+        elapsed,
+    )
 
     return {
-        "status": "simulated",
+        "status": "success",
         "crop_type": crop_type,
         "predictions": predictions,
-        "message": "This is a simulated detection. Real AI model integration is planned.",
+        "response_time_ms": elapsed,
     }
 
 

@@ -22,7 +22,8 @@ const NAV_ITEMS = [
   { label: "Home", path: ROUTES.HOME },
   { label: "Disease Detection", path: ROUTES.DISEASE_DETECTION },
   { label: "Weather", path: ROUTES.WEATHER },
-  { label: "Mandi Prices", path: ROUTES.MANDI },
+  { label: "APMC Price", path: ROUTES.APMC },
+  { label: "Schemes", path: ROUTES.SCHEMES },
 ];
 
 function Header({ language, onToggleLanguage, theme, onToggleTheme }) {

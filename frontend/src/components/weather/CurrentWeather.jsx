@@ -167,7 +167,7 @@ function CurrentWeather({ forecast, location, className = "" }) {
     : null;
 
   const locationLabel = location
-    ? [location.city, location.state].filter(Boolean).join(", ")
+    ? [location.taluka, location.district, location.state].filter(Boolean).join(", ")
     : "";
 
   const formattedDate = date
@@ -271,7 +271,8 @@ CurrentWeather.propTypes = {
     daily: PropTypes.object,
   }),
   location: PropTypes.shape({
-    city: PropTypes.string,
+    taluka: PropTypes.string,
+    district: PropTypes.string,
     state: PropTypes.string,
   }),
   className: PropTypes.string,

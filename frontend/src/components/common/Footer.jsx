@@ -12,7 +12,7 @@ import { ROUTES, APP_NAME } from "@utils/constants";
 const FOOTER_LINKS = [
   { label: "Disease Detection", path: ROUTES.DISEASE_DETECTION },
   { label: "Weather", path: ROUTES.WEATHER },
-  { label: "Mandi Prices", path: ROUTES.MANDI },
+  { label: "APMC Price", path: ROUTES.APMC },
 ];
 
 function Footer({ className = "" }) {

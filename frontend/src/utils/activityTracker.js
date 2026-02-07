@@ -15,7 +15,7 @@ const MAX_ACTIVITIES = 20;
 /**
  * @typedef {Object} Activity
  * @property {string} id          - Unique identifier.
- * @property {string} type        - Activity type (disease, weather, mandi, voice, search).
+ * @property {string} type        - Activity type (disease, weather, apmc, voice, search).
  * @property {string} title       - Short title.
  * @property {string} description - Human-readable description.
  * @property {string} timestamp   - ISO 8601 timestamp.
@@ -76,7 +76,7 @@ export function clearActivities() {
 export const ACTIVITY_TYPES = {
   DISEASE: "disease",
   WEATHER: "weather",
-  MANDI: "mandi",
+  APMC: "apmc",
   VOICE: "voice",
   SEARCH: "search",
 };

@@ -1,8 +1,8 @@
 /**
- * BestMandiCard - Featured card for the best mandi recommendation.
+ * BestAPMCCard - Featured card for the best APMC recommendation.
  *
  * Features:
- *  - Highlighted best mandi name, location, and price
+ *  - Highlighted best APMC name, location, and price
  *  - Price comparison to average and worst
  *  - Potential profit calculation (per quintal extra)
  *  - Distance and Google Maps directions link
@@ -22,32 +22,32 @@ import {
 import { Card, Badge } from "@components/common";
 import { formatPricePerQuintal, formatPrice } from "@utils/helpers";
 
-function BestMandiCard({ bestMandi, averagePrice, worstPrice, className = "" }) {
-  if (!bestMandi) return null;
+function BestAPMCCard({ bestAPMC, averagePrice, worstPrice, className = "" }) {
+  if (!bestAPMC) return null;
 
   const priceDiffFromAvg =
-    averagePrice && bestMandi.price_per_quintal
-      ? bestMandi.price_per_quintal - averagePrice
+    averagePrice && bestAPMC.price_per_quintal
+      ? bestAPMC.price_per_quintal - averagePrice
       : null;
   const priceDiffFromWorst =
-    worstPrice && bestMandi.price_per_quintal
-      ? bestMandi.price_per_quintal - worstPrice
+    worstPrice && bestAPMC.price_per_quintal
+      ? bestAPMC.price_per_quintal - worstPrice
       : null;
 
   const profitPerQuintal = priceDiffFromAvg && priceDiffFromAvg > 0
     ? priceDiffFromAvg
     : 0;
 
-  const netPrice = bestMandi.net_price_per_quintal ?? bestMandi.price_per_quintal;
-  const transportCost = bestMandi.transport_cost_per_quintal ?? null;
-  const distanceKm = bestMandi.distance_km ?? null;
+  const netPrice = bestAPMC.net_price_per_quintal ?? bestAPMC.price_per_quintal;
+  const transportCost = bestAPMC.transport_cost_per_quintal ?? null;
+  const distanceKm = bestAPMC.distance_km ?? null;
 
   // Build Google Maps direction link
   const mapsUrl =
-    bestMandi.latitude && bestMandi.longitude
-      ? `https://www.google.com/maps/dir/?api=1&destination=${bestMandi.latitude},${bestMandi.longitude}`
-      : bestMandi.mandi_name
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bestMandi.mandi_name)}`
+    bestAPMC.latitude && bestAPMC.longitude
+      ? `https://www.google.com/maps/dir/?api=1&destination=${bestAPMC.latitude},${bestAPMC.longitude}`
+      : bestAPMC.mandi_name
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bestAPMC.mandi_name)}`
         : null;
 
   return (
@@ -70,11 +70,11 @@ function BestMandiCard({ bestMandi, averagePrice, worstPrice, className = "" }) 
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-bold text-primary-800 truncate">
-                {bestMandi.mandi_name}
+                {bestAPMC.mandi_name}
               </h3>
               <p className="text-sm text-neutral-600 flex items-center gap-1 mt-0.5">
                 <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
-                {[bestMandi.district, bestMandi.state]
+                {[bestAPMC.district, bestAPMC.state]
                   .filter(Boolean)
                   .join(", ")}
               </p>
@@ -87,7 +87,7 @@ function BestMandiCard({ bestMandi, averagePrice, worstPrice, className = "" }) 
             <div className="bg-white rounded-lg p-3 border border-primary-200 shadow-sm">
               <p className="text-xs text-neutral-500 mb-0.5">Selling Price</p>
               <p className="text-xl font-bold text-primary-700 tabular-nums">
-                {formatPricePerQuintal(bestMandi.price_per_quintal)}
+                {formatPricePerQuintal(bestAPMC.price_per_quintal)}
               </p>
             </div>
 
@@ -97,7 +97,7 @@ function BestMandiCard({ bestMandi, averagePrice, worstPrice, className = "" }) 
                 {transportCost != null ? "Net Price" : "Modal Price"}
               </p>
               <p className="text-xl font-bold text-neutral-800 tabular-nums">
-                {formatPricePerQuintal(netPrice || bestMandi.modal_price)}
+                {formatPricePerQuintal(netPrice || bestAPMC.modal_price)}
               </p>
             </div>
           </div>
@@ -180,8 +180,8 @@ function BestMandiCard({ bestMandi, averagePrice, worstPrice, className = "" }) 
   );
 }
 
-BestMandiCard.propTypes = {
-  bestMandi: PropTypes.shape({
+BestAPMCCard.propTypes = {
+  bestAPMC: PropTypes.shape({
     mandi_name: PropTypes.string,
     state: PropTypes.string,
     district: PropTypes.string,
@@ -198,4 +198,4 @@ BestMandiCard.propTypes = {
   className: PropTypes.string,
 };
 
-export default BestMandiCard;
+export default BestAPMCCard;

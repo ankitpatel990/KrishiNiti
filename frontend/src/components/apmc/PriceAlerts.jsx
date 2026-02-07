@@ -66,16 +66,16 @@ function deriveAlerts(prices, commodity) {
   const spread = maxPrice - minPrice;
   const spreadPct = avgPrice > 0 ? (spread / avgPrice) * 100 : 0;
 
-  // Best mandi
-  const bestMandi = prices.find((p) => p.price_per_quintal === maxPrice);
+  // Best APMC
+  const bestAPMC = prices.find((p) => p.price_per_quintal === maxPrice);
 
-  // Opportunity: High spread means selling at the right mandi matters
-  if (spreadPct > 5 && bestMandi) {
+  // Opportunity: High spread means selling at the right APMC matters
+  if (spreadPct > 5 && bestAPMC) {
     alerts.push({
       id: "high-spread",
       severity: "opportunity",
       title: "Good Selling Opportunity",
-      message: `${bestMandi.mandi_name} offers ${formatPricePerQuintal(maxPrice)} for ${commodity} - ${formatPricePerQuintal(spread)} more than the lowest mandi.`,
+      message: `${bestAPMC.mandi_name} offers ${formatPricePerQuintal(maxPrice)} for ${commodity} - ${formatPricePerQuintal(spread)} more than the lowest APMC.`,
       actionable: true,
     });
   }
@@ -86,19 +86,19 @@ function deriveAlerts(prices, commodity) {
       id: "high-volatility",
       severity: "warning",
       title: "Price Volatility Detected",
-      message: `${commodity} prices vary by ${spreadPct.toFixed(1)}% across mandis. Compare carefully before selling.`,
+      message: `${commodity} prices vary by ${spreadPct.toFixed(1)}% across APMCs. Compare carefully before selling.`,
       actionable: false,
     });
   }
 
-  // Info: Multiple mandis above average
+  // Info: Multiple APMCs above average
   const aboveAvgCount = allPrices.filter((p) => p > avgPrice).length;
   if (aboveAvgCount >= 3) {
     alerts.push({
       id: "multiple-high",
       severity: "info",
-      title: "Multiple High-Price Mandis",
-      message: `${aboveAvgCount} out of ${allPrices.length} mandis are offering above-average prices (>${formatPricePerQuintal(avgPrice)}).`,
+      title: "Multiple High-Price APMCs",
+      message: `${aboveAvgCount} out of ${allPrices.length} APMCs are offering above-average prices (>${formatPricePerQuintal(avgPrice)}).`,
       actionable: false,
     });
   }
@@ -109,7 +109,7 @@ function deriveAlerts(prices, commodity) {
       id: "stable-market",
       severity: "info",
       title: "Stable Market Prices",
-      message: `${commodity} prices are consistent across mandis (within ${spreadPct.toFixed(1)}% range). Safe to sell at the nearest mandi.`,
+      message: `${commodity} prices are consistent across APMCs (within ${spreadPct.toFixed(1)}% range). Safe to sell at the nearest APMC.`,
       actionable: false,
     });
   }

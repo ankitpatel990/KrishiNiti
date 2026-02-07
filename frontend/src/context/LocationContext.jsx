@@ -3,8 +3,7 @@
  * LocationContext - User location state management.
  *
  * Manages:
- *  - User pincode with localStorage persistence
- *  - District and state derived from pincode
+ *  - User location (state, district, taluka) with localStorage persistence
  *  - GPS coordinates (latitude / longitude)
  *  - Loading and error states for location operations
  */
@@ -17,19 +16,18 @@ import {
 } from "react";
 import storage from "@utils/storage";
 import { STORAGE_KEYS } from "@utils/constants";
-import { validatePincode } from "@utils/validators";
 
 // ---------------------------------------------------------------------------
 // Initial State
 // ---------------------------------------------------------------------------
 
 function buildInitialState() {
-  const savedPincode = storage.get(STORAGE_KEYS.PINCODE, "");
+  const savedLocation = storage.get(STORAGE_KEYS.LOCATION, null);
 
   return {
-    pincode: savedPincode,
-    district: "",
-    state: "",
+    taluka: savedLocation?.taluka || "",
+    district: savedLocation?.district || "",
+    state: savedLocation?.state || "",
     coordinates: {
       latitude: null,
       longitude: null,
@@ -44,7 +42,6 @@ function buildInitialState() {
 // ---------------------------------------------------------------------------
 
 const ACTION_TYPES = {
-  SET_PINCODE: "SET_PINCODE",
   SET_LOCATION: "SET_LOCATION",
   SET_COORDINATES: "SET_COORDINATES",
   SET_LOADING: "SET_LOADING",
@@ -59,17 +56,10 @@ const ACTION_TYPES = {
 
 function locationReducer(state, action) {
   switch (action.type) {
-    case ACTION_TYPES.SET_PINCODE:
-      return {
-        ...state,
-        pincode: action.payload,
-        error: null,
-      };
-
     case ACTION_TYPES.SET_LOCATION:
       return {
         ...state,
-        pincode: action.payload.pincode || state.pincode,
+        taluka: action.payload.taluka || "",
         district: action.payload.district || "",
         state: action.payload.state || "",
         coordinates: action.payload.coordinates || state.coordinates,
@@ -98,7 +88,7 @@ function locationReducer(state, action) {
     case ACTION_TYPES.CLEAR_LOCATION:
       return {
         ...state,
-        pincode: "",
+        taluka: "",
         district: "",
         state: "",
         coordinates: { latitude: null, longitude: null },
@@ -127,41 +117,29 @@ export function LocationProvider({ children }) {
     buildInitialState,
   );
 
-  // Persist pincode whenever it changes
+  // Persist location whenever it changes
   useEffect(() => {
-    if (state.pincode) {
-      storage.set(STORAGE_KEYS.PINCODE, state.pincode);
+    if (state.taluka && state.district && state.state) {
+      storage.set(STORAGE_KEYS.LOCATION, {
+        taluka: state.taluka,
+        district: state.district,
+        state: state.state,
+      });
     } else {
-      storage.remove(STORAGE_KEYS.PINCODE);
+      storage.remove(STORAGE_KEYS.LOCATION);
     }
-  }, [state.pincode]);
+  }, [state.taluka, state.district, state.state]);
 
   // --- Actions ---------------------------------------------------------------
 
   /**
-   * Set the user's pincode after validation.
-   *
-   * @param {string} pincode - 6-digit Indian pincode.
-   */
-  const setPincode = useCallback((pincode) => {
-    const result = validatePincode(pincode);
-    if (!result.valid) {
-      dispatch({ type: ACTION_TYPES.SET_ERROR, payload: result.message });
-      return;
-    }
-    dispatch({ type: ACTION_TYPES.SET_PINCODE, payload: pincode.trim() });
-  }, []);
-
-  /**
-   * Set the full location object (pincode + district + state + coordinates).
+   * Set the full location object (state + district + taluka + optional coordinates).
    *
    * @param {Object} location
-   * @param {string} [location.pincode]
-   * @param {string} [location.district]
    * @param {string} [location.state]
+   * @param {string} [location.district]
+   * @param {string} [location.taluka]
    * @param {Object} [location.coordinates]
-   * @param {number} [location.coordinates.latitude]
-   * @param {number} [location.coordinates.longitude]
    */
   const setLocation = useCallback((location) => {
     dispatch({ type: ACTION_TYPES.SET_LOCATION, payload: location });
@@ -169,9 +147,6 @@ export function LocationProvider({ children }) {
 
   /**
    * Set GPS coordinates independently.
-   *
-   * @param {number} latitude
-   * @param {number} longitude
    */
   const setCoordinates = useCallback((latitude, longitude) => {
     dispatch({
@@ -182,7 +157,6 @@ export function LocationProvider({ children }) {
 
   /**
    * Request the user's current position using the Geolocation API.
-   * Updates coordinates on success; dispatches an error on failure.
    */
   const detectLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -222,10 +196,10 @@ export function LocationProvider({ children }) {
   }, []);
 
   /**
-   * Clear all location data and remove persisted pincode.
+   * Clear all location data.
    */
   const clearLocation = useCallback(() => {
-    storage.remove(STORAGE_KEYS.PINCODE);
+    storage.remove(STORAGE_KEYS.LOCATION);
     dispatch({ type: ACTION_TYPES.CLEAR_LOCATION });
   }, []);
 
@@ -235,13 +209,12 @@ export function LocationProvider({ children }) {
 
   const value = {
     ...state,
-    setPincode,
     setLocation,
     setCoordinates,
     detectLocation,
     clearLocation,
     clearError,
-    hasLocation: Boolean(state.pincode),
+    hasLocation: Boolean(state.taluka && state.district && state.state),
     hasCoordinates:
       state.coordinates.latitude !== null &&
       state.coordinates.longitude !== null,

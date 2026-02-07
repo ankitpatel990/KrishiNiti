@@ -1,13 +1,13 @@
 /**
- * Mandi price API service.
+ * APMC price API service.
  *
- * Connects to backend /api/v1/mandi endpoints:
- * - Commodities list, prices (with filters), compare, best mandi, trends.
+ * Connects to backend /api/v1/apmc endpoints:
+ * - Commodities list, prices (with filters), compare, best APMC, trends.
  */
 
 import api, { API_V1 } from "./api";
 
-const BASE = `${API_V1}/mandi`;
+const BASE = `${API_V1}/apmc`;
 
 /**
  * List all commodities with summary statistics.
@@ -19,7 +19,7 @@ export async function getCommodities() {
 }
 
 /**
- * Get mandi prices with optional filters.
+ * Get APMC prices with optional filters.
  * @param {{
  *   commodity?: string,
  *   state?: string,
@@ -38,14 +38,14 @@ export async function getPrices(params = {}) {
 }
 
 /**
- * Compare prices across mandis for a commodity.
+ * Compare prices across APMCs for a commodity.
  * @param {string} commodity - Commodity name
- * @param {{ mandis?: string, state?: string }} [options]
+ * @param {{ apmcs?: string, state?: string }} [options]
  * @returns {Promise<Object>}
  */
 export async function comparePrices(commodity, options = {}) {
   const params = { commodity };
-  if (options.mandis) params.mandis = options.mandis;
+  if (options.apmcs) params.apmcs = options.apmcs;
   if (options.state) params.state = options.state;
 
   const { data } = await api.get(`${BASE}/compare`, { params });
@@ -53,7 +53,7 @@ export async function comparePrices(commodity, options = {}) {
 }
 
 /**
- * Get best mandi recommendation for a commodity.
+ * Get best APMC recommendation for a commodity.
  * @param {string} commodity - Commodity name
  * @param {{
  *   latitude?: number,
@@ -63,7 +63,7 @@ export async function comparePrices(commodity, options = {}) {
  * }} [options]
  * @returns {Promise<Object>}
  */
-export async function getBestMandi(commodity, options = {}) {
+export async function getBestAPMC(commodity, options = {}) {
   const params = { commodity };
   if (options.latitude != null) params.latitude = options.latitude;
   if (options.longitude != null) params.longitude = options.longitude;
@@ -87,5 +87,20 @@ export async function getTrends(commodity, options = {}) {
   if (options.days != null) params.days = options.days;
 
   const { data } = await api.get(`${BASE}/trends`, { params });
+  return data;
+}
+
+/**
+ * Get sell advisory with storage vs immediate sell recommendation.
+ * @param {string} commodity - Commodity name
+ * @param {{ current_price?: number, state?: string }} [options]
+ * @returns {Promise<Object>}
+ */
+export async function getSellAdvisory(commodity, options = {}) {
+  const params = { commodity };
+  if (options.current_price != null) params.current_price = options.current_price;
+  if (options.state) params.state = options.state;
+
+  const { data } = await api.get(`${BASE}/sell-advisory`, { params });
   return data;
 }

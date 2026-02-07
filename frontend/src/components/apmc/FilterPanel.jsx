@@ -1,5 +1,5 @@
 /**
- * FilterPanel - State, district, and sort filters for mandi prices.
+ * FilterPanel - State, district, and sort filters for APMC prices.
  *
  * Features:
  *  - State filter dropdown (derived from price data)
@@ -21,7 +21,7 @@ import { Select, Button, Badge } from "@components/common";
 const SORT_OPTIONS = [
   { value: "price_desc", label: "Price: High to Low" },
   { value: "price_asc", label: "Price: Low to High" },
-  { value: "name_asc", label: "Mandi Name: A-Z" },
+  { value: "name_asc", label: "APMC Name: A-Z" },
   { value: "date_desc", label: "Date: Newest First" },
 ];
 
@@ -109,7 +109,7 @@ function FilterPanel({
 
       {/* Filter panel (always visible on desktop, collapsible on mobile) */}
       <div className={`${isExpanded ? "block" : "hidden"} sm:block mt-3 sm:mt-0`}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {/* State filter */}
           <Select
             name="state-filter"
@@ -118,7 +118,7 @@ function FilterPanel({
             value={filters.state}
             onChange={handleStateChange}
             placeholder="All States"
-            className="sm:w-44"
+            className="w-full"
           />
 
           {/* District filter */}
@@ -130,7 +130,7 @@ function FilterPanel({
             onChange={handleDistrictChange}
             placeholder="All Districts"
             disabled={!filters.state}
-            className="sm:w-44"
+            className="w-full"
           />
 
           {/* Sort */}
@@ -140,21 +140,25 @@ function FilterPanel({
             options={SORT_OPTIONS}
             value={filters.sort}
             onChange={handleSortChange}
-            className="sm:w-48"
+            className="w-full"
           />
 
           {/* Clear */}
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              icon={<XMarkIcon className="h-4 w-4" />}
-              className="sm:mb-0.5"
-            >
-              Clear Filters
-            </Button>
-          )}
+          <div className="flex items-end">
+            {activeFilterCount > 0 ? (
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={handleClearFilters}
+                icon={<XMarkIcon className="h-4 w-4" />}
+                className="w-full sm:w-auto"
+              >
+                Clear Filters
+              </Button>
+            ) : (
+              <div className="hidden lg:block" />
+            )}
+          </div>
         </div>
       </div>
     </div>

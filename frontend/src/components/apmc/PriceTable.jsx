@@ -1,5 +1,5 @@
 /**
- * PriceTable - Responsive mandi price table with sorting and highlights.
+ * PriceTable - Responsive APMC price table with sorting and highlights.
  *
  * Features:
  *  - Desktop: Full table with sortable columns
@@ -42,7 +42,7 @@ function getTrendIndicator(price) {
   return { icon: MinusIcon, color: "text-neutral-400", label: "Stable" };
 }
 
-function PriceTable({ prices = [], bestMandiName = "", className = "" }) {
+function PriceTable({ prices = [], bestAPMCName = "", className = "" }) {
   // Find the best price row
   const bestPrice = useMemo(() => {
     if (prices.length === 0) return null;
@@ -81,7 +81,7 @@ function PriceTable({ prices = [], bestMandiName = "", className = "" }) {
       {/* Result count */}
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-neutral-600">
-          Showing <span className="font-semibold text-neutral-800">{prices.length}</span> mandis
+          Showing <span className="font-semibold text-neutral-800">{prices.length}</span> APMCs
         </p>
         {bestPrice && (
           <Badge variant="primary" size="sm" dot>
@@ -95,7 +95,7 @@ function PriceTable({ prices = [], bestMandiName = "", className = "" }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-neutral-200">
-              <th className="text-left py-3 px-3 font-semibold text-neutral-700">Mandi</th>
+              <th className="text-left py-3 px-3 font-semibold text-neutral-700">APMC</th>
               <th className="text-left py-3 px-3 font-semibold text-neutral-700">Location</th>
               <th className="text-right py-3 px-3 font-semibold text-neutral-700">Price/qtl</th>
               <th className="text-center py-3 px-3 font-semibold text-neutral-700">Range</th>
@@ -106,8 +106,8 @@ function PriceTable({ prices = [], bestMandiName = "", className = "" }) {
           <tbody>
             {prices.map((price, index) => {
               const isBest =
-                bestMandiName
-                  ? price.mandi_name === bestMandiName
+                bestAPMCName
+                  ? price.mandi_name === bestAPMCName
                   : price === bestPrice;
               const trend = getTrendIndicator(price);
               const TrendIcon = trend.icon;
@@ -127,7 +127,7 @@ function PriceTable({ prices = [], bestMandiName = "", className = "" }) {
                       : "hover:bg-neutral-50",
                   ].join(" ")}
                 >
-                  {/* Mandi name */}
+                  {/* APMC name */}
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2">
                       {isBest && (
@@ -195,8 +195,8 @@ function PriceTable({ prices = [], bestMandiName = "", className = "" }) {
       <div className="sm:hidden space-y-3">
         {prices.map((price, index) => {
           const isBest =
-            bestMandiName
-              ? price.mandi_name === bestMandiName
+            bestAPMCName
+              ? price.mandi_name === bestAPMCName
               : price === bestPrice;
           const trend = getTrendIndicator(price);
           const TrendIcon = trend.icon;
@@ -275,7 +275,7 @@ PriceTable.propTypes = {
       arrival_date: PropTypes.string,
     }),
   ),
-  bestMandiName: PropTypes.string,
+  bestAPMCName: PropTypes.string,
   className: PropTypes.string,
 };
 

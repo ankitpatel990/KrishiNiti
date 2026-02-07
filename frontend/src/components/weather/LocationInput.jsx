@@ -1,203 +1,230 @@
 /**
- * LocationInput - Pincode entry with geolocation auto-detect and recent history.
+ * LocationInput - Cascading State / District / Taluka dropdowns.
  *
- * Features:
- *  - 6-digit pincode input with client-side validation
- *  - Browser geolocation "Detect my location" button
- *  - Recent pincodes stored in localStorage (up to 5)
- *  - Integrated with LocationContext for global state
+ * Flow:
+ *  1. User selects a State  (all Indian states listed).
+ *  2. User selects a District. Only Gujarat districts with data are
+ *     selectable; all other states show "Coming Soon" in the dropdown.
+ *  3. User selects a Taluka from the available list for that district.
+ *  4. On submit, the selected { state, district, taluka } is passed
+ *     to the parent via onSubmit.
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   MapPinIcon,
   MagnifyingGlassIcon,
-  ClockIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Input } from "@components/common";
-import { validatePincode } from "@utils/validators";
-import storage from "@utils/storage";
+import { Button, Select } from "@components/common";
 
-const RECENT_PINCODES_KEY = "farmhelp_recent_pincodes";
-const MAX_RECENT = 5;
+// ---------------------------------------------------------------------------
+// All Indian states (alphabetical)
+// ---------------------------------------------------------------------------
+const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+];
 
-function getRecentPincodes() {
-  return storage.get(RECENT_PINCODES_KEY, []);
-}
+// ---------------------------------------------------------------------------
+// Hardcoded location hierarchy (mirrors backend taluka_coordinates.json)
+// ---------------------------------------------------------------------------
+const LOCATION_DATA = {
+  Gujarat: {
+    Rajkot: ["Jetpur", "Gondal"],
+    Junagadh: ["Keshod", "Vanthli"],
+    Amreli: ["Lathi", "Dhari"],
+  },
+};
 
-function saveRecentPincode(pincode) {
-  const recent = getRecentPincodes().filter((p) => p !== pincode);
-  recent.unshift(pincode);
-  storage.set(RECENT_PINCODES_KEY, recent.slice(0, MAX_RECENT));
-}
+const ACTIVE_STATE = "Gujarat";
 
-function LocationInput({
-  onSubmit,
-  initialPincode = "",
-  loading = false,
-  detectingLocation = false,
-  onDetectLocation,
-}) {
-  const [pincode, setPincode] = useState(initialPincode);
-  const [error, setError] = useState("");
-  const [showRecent, setShowRecent] = useState(false);
-  const inputRef = useRef(null);
-  const containerRef = useRef(null);
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
-  const recentPincodes = getRecentPincodes();
+function LocationInput({ onSubmit, initialLocation, loading }) {
+  const [selectedState, setSelectedState] = useState(
+    initialLocation?.state || "",
+  );
+  const [selectedDistrict, setSelectedDistrict] = useState(
+    initialLocation?.district || "",
+  );
+  const [selectedTaluka, setSelectedTaluka] = useState(
+    initialLocation?.taluka || "",
+  );
 
-  // Sync initial pincode when prop changes
-  useEffect(() => {
-    if (initialPincode && initialPincode !== pincode) {
-      setPincode(initialPincode);
+  // -- Derived option lists -------------------------------------------------
+
+  const stateOptions = useMemo(
+    () =>
+      INDIAN_STATES.map((s) => ({
+        value: s,
+        label: s,
+      })),
+    [],
+  );
+
+  const isActiveState = selectedState === ACTIVE_STATE;
+
+  const districtOptions = useMemo(() => {
+    if (!selectedState) return [];
+    if (!isActiveState) {
+      return [{ value: "__coming_soon__", label: "Coming Soon", disabled: true }];
     }
-    // Only run when initialPincode changes externally
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPincode]);
+    const districts = LOCATION_DATA[ACTIVE_STATE];
+    return Object.keys(districts)
+      .sort()
+      .map((d) => ({ value: d, label: d }));
+  }, [selectedState, isActiveState]);
 
-  // Close recent dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setShowRecent(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+  const talukaOptions = useMemo(() => {
+    if (!isActiveState || !selectedDistrict) return [];
+    const talukas = LOCATION_DATA[ACTIVE_STATE]?.[selectedDistrict];
+    if (!talukas) return [];
+    return talukas.map((t) => ({ value: t, label: t }));
+  }, [isActiveState, selectedDistrict]);
+
+  // -- Handlers -------------------------------------------------------------
+
+  const handleStateChange = useCallback((e) => {
+    const value = e.target.value;
+    setSelectedState(value);
+    setSelectedDistrict("");
+    setSelectedTaluka("");
   }, []);
 
-  const handleChange = useCallback((e) => {
-    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setPincode(val);
-    setError("");
+  const handleDistrictChange = useCallback((e) => {
+    const value = e.target.value;
+    setSelectedDistrict(value);
+    setSelectedTaluka("");
+  }, []);
+
+  const handleTalukaChange = useCallback((e) => {
+    setSelectedTaluka(e.target.value);
   }, []);
 
   const handleSubmit = useCallback(
     (e) => {
       if (e) e.preventDefault();
-      const result = validatePincode(pincode);
-      if (!result.valid) {
-        setError(result.message);
-        return;
-      }
-      setError("");
-      saveRecentPincode(pincode);
-      setShowRecent(false);
-      onSubmit(pincode);
+      if (!selectedState || !selectedDistrict || !selectedTaluka) return;
+      onSubmit({
+        state: selectedState,
+        district: selectedDistrict,
+        taluka: selectedTaluka,
+      });
     },
-    [pincode, onSubmit],
+    [selectedState, selectedDistrict, selectedTaluka, onSubmit],
   );
 
-  const handleRecentSelect = useCallback(
-    (selectedPincode) => {
-      setPincode(selectedPincode);
-      setError("");
-      setShowRecent(false);
-      saveRecentPincode(selectedPincode);
-      onSubmit(selectedPincode);
-    },
-    [onSubmit],
-  );
+  const canSubmit =
+    isActiveState && selectedDistrict && selectedTaluka && !loading;
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Enter") {
-        handleSubmit();
-      }
-    },
-    [handleSubmit],
-  );
-
-  const handleFocus = useCallback(() => {
-    if (recentPincodes.length > 0) {
-      setShowRecent(true);
-    }
-  }, [recentPincodes.length]);
+  // -- Render ---------------------------------------------------------------
 
   return (
-    <div ref={containerRef} className="space-y-3">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        {/* Pincode input */}
-        <div className="relative flex-1">
-          <Input
-            ref={inputRef}
-            name="pincode"
-            type="text"
-            inputMode="numeric"
-            label="Pincode"
-            placeholder="Enter 6-digit pincode"
-            value={pincode}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onKeyDown={handleKeyDown}
-            error={error}
+    <div className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+      >
+        {/* Dropdown row */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* State */}
+          <Select
+            name="state"
+            label="State"
+            options={stateOptions}
+            value={selectedState}
+            onChange={handleStateChange}
+            placeholder="Select State"
             disabled={loading}
-            leadingIcon={<MapPinIcon className="h-4 w-4" />}
-            helperText="Example: 110001 (New Delhi), 400001 (Mumbai)"
+            searchable
           />
 
-          {/* Recent pincodes dropdown */}
-          {showRecent && recentPincodes.length > 0 && (
-            <div className="absolute z-20 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lg">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-100">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-neutral-500">
-                  <ClockIcon className="h-3.5 w-3.5" />
-                  Recent Pincodes
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowRecent(false)}
-                  className="text-neutral-400 hover:text-neutral-600"
-                  aria-label="Close recent pincodes"
-                >
-                  <XMarkIcon className="h-4 w-4" />
-                </button>
-              </div>
-              <ul className="py-1">
-                {recentPincodes.map((p) => (
-                  <li key={p}>
-                    <button
-                      type="button"
-                      onClick={() => handleRecentSelect(p)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-700 transition-colors"
-                    >
-                      <MapPinIcon className="h-4 w-4 text-neutral-400" />
-                      {p}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {/* District */}
+          <Select
+            name="district"
+            label="District"
+            options={districtOptions}
+            value={selectedDistrict}
+            onChange={handleDistrictChange}
+            placeholder={
+              selectedState
+                ? isActiveState
+                  ? "Select District"
+                  : "Coming Soon"
+                : "Select State first"
+            }
+            disabled={loading || !selectedState || !isActiveState}
+          />
+
+          {/* Taluka */}
+          <Select
+            name="taluka"
+            label="Taluka"
+            options={talukaOptions}
+            value={selectedTaluka}
+            onChange={handleTalukaChange}
+            placeholder={
+              selectedDistrict ? "Select Taluka" : "Select District first"
+            }
+            disabled={loading || !selectedDistrict}
+          />
         </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-2 sm:pb-5">
+        {/* Info message for non-Gujarat states */}
+        {selectedState && !isActiveState && (
+          <p className="text-sm text-amber-600">
+            Weather data for {selectedState} is coming soon. Currently only
+            select districts of Gujarat are supported.
+          </p>
+        )}
+
+        {/* Submit */}
+        <div className="flex items-center gap-3">
           <Button
             type="submit"
             variant="primary"
             size="md"
             loading={loading}
-            disabled={pincode.length !== 6}
+            disabled={!canSubmit}
             icon={<MagnifyingGlassIcon className="h-4 w-4" />}
           >
             Get Forecast
           </Button>
 
-          {onDetectLocation && (
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              loading={detectingLocation}
-              onClick={onDetectLocation}
-              icon={<MapPinIcon className="h-4 w-4" />}
-            >
-              <span className="hidden sm:inline">Detect Location</span>
-              <span className="sm:hidden">Detect</span>
-            </Button>
+          {selectedTaluka && selectedDistrict && selectedState && (
+            <span className="flex items-center gap-1.5 text-sm text-neutral-600">
+              <MapPinIcon className="h-4 w-4 text-neutral-400" />
+              {selectedTaluka}, {selectedDistrict}, {selectedState}
+            </span>
           )}
         </div>
       </form>
@@ -207,10 +234,17 @@ function LocationInput({
 
 LocationInput.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  initialPincode: PropTypes.string,
+  initialLocation: PropTypes.shape({
+    state: PropTypes.string,
+    district: PropTypes.string,
+    taluka: PropTypes.string,
+  }),
   loading: PropTypes.bool,
-  detectingLocation: PropTypes.bool,
-  onDetectLocation: PropTypes.func,
+};
+
+LocationInput.defaultProps = {
+  initialLocation: null,
+  loading: false,
 };
 
 export default LocationInput;

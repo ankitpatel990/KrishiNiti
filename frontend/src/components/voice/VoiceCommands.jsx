@@ -31,7 +31,7 @@ import { LANGUAGES } from "@utils/constants";
 const INTENT_ICONS = {
   navigate_weather: CloudIcon,
   navigate_disease: CameraIcon,
-  navigate_mandi: CurrencyRupeeIcon,
+  navigate_apmc: CurrencyRupeeIcon,
   navigate_home: HomeIcon,
   show_help: QuestionMarkCircleIcon,
   query_crop_price: MagnifyingGlassIcon,
@@ -39,13 +39,13 @@ const INTENT_ICONS = {
   query_disease_treatment: BeakerIcon,
   compare_prices: ArrowsRightLeftIcon,
   read_alerts: BellAlertIcon,
-  best_mandi: StarIcon,
+  best_apmc: StarIcon,
 };
 
 const INTENT_COLORS = {
   navigate_weather: "bg-accent-50 text-accent-700 border-accent-200",
   navigate_disease: "bg-danger-50 text-danger-700 border-danger-200",
-  navigate_mandi: "bg-secondary-50 text-secondary-700 border-secondary-200",
+  navigate_apmc: "bg-secondary-50 text-secondary-700 border-secondary-200",
   navigate_home: "bg-primary-50 text-primary-700 border-primary-200",
   show_help: "bg-neutral-50 text-neutral-700 border-neutral-200",
   query_crop_price: "bg-secondary-50 text-secondary-700 border-secondary-200",
@@ -53,7 +53,7 @@ const INTENT_COLORS = {
   query_disease_treatment: "bg-danger-50 text-danger-700 border-danger-200",
   compare_prices: "bg-secondary-50 text-secondary-700 border-secondary-200",
   read_alerts: "bg-accent-50 text-accent-700 border-accent-200",
-  best_mandi: "bg-primary-50 text-primary-700 border-primary-200",
+  best_apmc: "bg-primary-50 text-primary-700 border-primary-200",
 };
 
 // ---------------------------------------------------------------------------

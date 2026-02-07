@@ -1,0 +1,16 @@
+{
+  "Gujarat": {
+    "Rajkot": {
+      "Jetpur": {"lat": 21.7553, "lon": 70.6203, "soil_type": "medium_black", "elevation_m": 110},
+      "Gondal": {"lat": 21.9610, "lon": 70.7938, "soil_type": "medium_black", "elevation_m": 145}
+    },
+    "Junagadh": {
+      "Keshod": {"lat": 21.3031, "lon": 70.2486, "soil_type": "clay_loam", "elevation_m": 85},
+      "Vanthli": {"lat": 21.4877, "lon": 70.3151, "soil_type": "clay_loam", "elevation_m": 120}
+    },
+    "Amreli": {
+      "Lathi": {"lat": 21.7274, "lon": 71.3921, "soil_type": "black_cotton", "elevation_m": 95},
+      "Dhari": {"lat": 21.3258, "lon": 71.0268, "soil_type": "medium_black", "elevation_m": 160}
+    }
+  }
+}

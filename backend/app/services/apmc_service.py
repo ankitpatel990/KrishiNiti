@@ -1,8 +1,8 @@
 """
-Mandi Service - Business Logic
+APMC Service - Business Logic
 
 Provides data.gov.in API integration (with fallback to local DB),
-price comparison, best mandi recommendation, price trend analysis,
+price comparison, best APMC recommendation, price trend analysis,
 distance calculation, and price analytics.
 """
 
@@ -42,8 +42,8 @@ TREND_STABLE_THRESHOLD_PERCENT = 2.0
 # Outlier detection (IQR multiplier)
 OUTLIER_IQR_FACTOR = 1.5
 
-# Mandi coordinates for distance calculation
-MANDI_COORDINATES: Dict[str, Dict[str, float]] = {
+# APMC coordinates for distance calculation
+APMC_COORDINATES: Dict[str, Dict[str, float]] = {
     "Azadpur Mandi": {"lat": 28.7041, "lon": 77.1788},
     "Khanna Mandi": {"lat": 30.6982, "lon": 76.2212},
     "Kotkapura Mandi": {"lat": 30.5906, "lon": 74.8103},
@@ -123,7 +123,7 @@ class _ApiCache:
             self._store.clear()
 
 
-_api_cache = _ApiCache(ttl_hours=settings.MANDI_CACHE_HOURS)
+_api_cache = _ApiCache(ttl_hours=settings.APMC_CACHE_HOURS)
 
 
 # ---------------------------------------------------------------------------
@@ -505,8 +505,8 @@ def compare_prices(
     if not results:
         return {
             "commodity": commodity,
-            "total_mandis": 0,
-            "mandis": [],
+            "total_apmcs": 0,
+            "apmcs": [],
             "analytics": None,
         }
 
@@ -518,8 +518,8 @@ def compare_prices(
 
     return {
         "commodity": commodity,
-        "total_mandis": len(results),
-        "mandis": results,
+        "total_apmcs": len(results),
+        "apmcs": results,
         "analytics": analytics,
     }
 
@@ -545,17 +545,17 @@ def _build_comparison_analytics(
         "price_range": {"min": min(prices), "max": max(prices)},
         "price_spread": spread,
         "price_spread_percent": spread_pct,
-        "best_mandi": best["mandi_name"],
-        "worst_mandi": worst["mandi_name"],
+        "best_apmc": best["mandi_name"],
+        "worst_apmc": worst["mandi_name"],
         "statistics": stats,
     }
 
 
 # ---------------------------------------------------------------------------
-# Best Mandi Recommendation
+# Best APMC Recommendation
 # ---------------------------------------------------------------------------
 
-def find_best_mandi(
+def find_best_apmc(
     db: Session,
     commodity: str,
     user_lat: Optional[float] = None,
@@ -564,10 +564,10 @@ def find_best_mandi(
     state: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Find the best mandi for selling a commodity, considering price and
+    Find the best APMC for selling a commodity, considering price and
     optional distance/transport cost.
 
-    Mandis are scored by net_price = market_price - transport_cost.
+    APMCs are scored by net_price = market_price - transport_cost.
     """
     base_query = db.query(MandiPrice).filter(
         func.lower(MandiPrice.commodity) == commodity.lower()
@@ -598,16 +598,16 @@ def find_best_mandi(
 
         distance_km: Optional[float] = None
         transport_cost = 0.0
-        mandi_coord = MANDI_COORDINATES.get(mandi_name)
+        apmc_coord = APMC_COORDINATES.get(mandi_name)
 
         if user_lat is not None and user_lon is not None:
-            if mandi_coord:
+            if apmc_coord:
                 distance_km = round(
                     haversine_distance(
                         user_lat,
                         user_lon,
-                        mandi_coord["lat"],
-                        mandi_coord["lon"],
+                        apmc_coord["lat"],
+                        apmc_coord["lon"],
                     ),
                     1,
                 )
@@ -617,7 +617,7 @@ def find_best_mandi(
                     distance_km * TRANSPORT_COST_PER_KM_PER_QUINTAL, 2
                 )
             else:
-                # No coordinates for this mandi; skip when distance
+                # No coordinates for this APMC; skip when distance
                 # filtering is active to avoid unfair ranking.
                 continue
 
@@ -662,7 +662,7 @@ def find_best_mandi(
             if user_lat is not None and user_lon is not None
             else None
         ),
-        "total_mandis": len(recommendations),
+        "total_apmcs": len(recommendations),
         "recommendations": recommendations,
     }
 
@@ -872,3 +872,466 @@ def _classify_trend(change_pct: float) -> str:
     if change_pct < -TREND_STABLE_THRESHOLD_PERCENT:
         return "down"
     return "stable"
+
+
+# ---------------------------------------------------------------------------
+# Sell Advisory - Storage vs Immediate Sell & Best Time to Sell
+# ---------------------------------------------------------------------------
+
+# Storage cost estimates (INR per quintal per month)
+STORAGE_COST_PER_QUINTAL_PER_MONTH = {
+    "default": 50,
+    "perishable": 150,  # Cold storage required
+    "semi_perishable": 80,
+}
+
+# Commodity classification for storage
+COMMODITY_STORAGE_CLASS = {
+    # Perishable (require cold storage, short shelf life)
+    "Tomato": "perishable",
+    "Onion": "semi_perishable",
+    "Potato": "semi_perishable",
+    "Brinjal": "perishable",
+    "Cabbage": "perishable",
+    "Cauliflower": "perishable",
+    "Capsicum": "perishable",
+    "Cucumber": "perishable",
+    "Carrot": "perishable",
+    "Green Chilli": "perishable",
+    "Lady Finger": "perishable",
+    "Bitter Gourd": "perishable",
+    "Bottle Gourd": "perishable",
+    "Pumpkin": "semi_perishable",
+    "Banana": "perishable",
+    "Mango": "perishable",
+    "Papaya": "perishable",
+    "Guava": "perishable",
+    "Grapes": "perishable",
+    "Pomegranate": "semi_perishable",
+    "Apple": "semi_perishable",
+    "Orange": "semi_perishable",
+    # Non-perishable (can be stored longer)
+    "Wheat": "default",
+    "Rice": "default",
+    "Paddy": "default",
+    "Maize": "default",
+    "Bajra": "default",
+    "Jowar": "default",
+    "Cotton": "default",
+    "Groundnut": "default",
+    "Soyabean": "default",
+    "Mustard": "default",
+    "Chana": "default",
+    "Tur": "default",
+    "Moong": "default",
+    "Urad": "default",
+    "Masoor": "default",
+    "Cumin": "default",
+    "Coriander": "default",
+    "Turmeric": "default",
+    "Red Chilli": "default",
+    "Ginger": "semi_perishable",
+    "Garlic": "semi_perishable",
+    "Sugarcane": "perishable",
+}
+
+# Seasonal price patterns (month -> expected price movement)
+# Based on typical harvest cycles in India
+SEASONAL_PATTERNS = {
+    "Wheat": {
+        "peak_months": [5, 6, 7, 8],  # May-Aug (post-harvest low, prices rise)
+        "low_months": [3, 4],  # Mar-Apr (harvest time, prices low)
+        "expected_rise_pct": 15,
+    },
+    "Rice": {
+        "peak_months": [7, 8, 9],  # Jul-Sep (lean season)
+        "low_months": [11, 12, 1],  # Nov-Jan (harvest time)
+        "expected_rise_pct": 12,
+    },
+    "Paddy": {
+        "peak_months": [7, 8, 9],
+        "low_months": [10, 11, 12],
+        "expected_rise_pct": 12,
+    },
+    "Cotton": {
+        "peak_months": [6, 7, 8, 9],  # Before new crop
+        "low_months": [11, 12, 1, 2],  # Harvest season
+        "expected_rise_pct": 20,
+    },
+    "Groundnut": {
+        "peak_months": [6, 7, 8],
+        "low_months": [10, 11, 12],
+        "expected_rise_pct": 18,
+    },
+    "Onion": {
+        "peak_months": [8, 9, 10],  # Before Kharif harvest
+        "low_months": [1, 2, 3, 4, 5],  # Rabi harvest
+        "expected_rise_pct": 40,
+    },
+    "Potato": {
+        "peak_months": [8, 9, 10, 11],
+        "low_months": [1, 2, 3],
+        "expected_rise_pct": 30,
+    },
+    "Tomato": {
+        "peak_months": [5, 6, 7],  # Summer shortage
+        "low_months": [11, 12, 1, 2],  # Winter glut
+        "expected_rise_pct": 50,
+    },
+    "Soyabean": {
+        "peak_months": [6, 7, 8],
+        "low_months": [10, 11, 12],
+        "expected_rise_pct": 15,
+    },
+    "Maize": {
+        "peak_months": [4, 5, 6],
+        "low_months": [9, 10, 11],
+        "expected_rise_pct": 12,
+    },
+    "Chana": {
+        "peak_months": [10, 11, 12],
+        "low_months": [3, 4, 5],
+        "expected_rise_pct": 18,
+    },
+}
+
+
+def get_sell_advisory(
+    db: Session,
+    commodity: str,
+    current_price: Optional[float] = None,
+    state: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Generate storage vs immediate sell recommendation and best time to sell.
+
+    Considers:
+    - Current price vs historical average
+    - Price trend (rising/falling)
+    - Storage costs for the commodity
+    - Seasonal price patterns
+    - Perishability of the commodity
+
+    Returns:
+        Advisory with recommendation, reasoning, and best selling window.
+    """
+    # Get historical trend data
+    trend_data = get_price_trends(db, commodity, state, days=30)
+
+    if trend_data.get("data_points", 0) < 3:
+        return {
+            "commodity": commodity,
+            "has_data": False,
+            "message": "Insufficient price data to generate recommendation",
+            "recommendation": None,
+            "best_time_to_sell": None,
+        }
+
+    stats = trend_data.get("statistics", {})
+    trend = trend_data.get("trend", "stable")
+    change_pct = trend_data.get("change_percent", 0)
+    price_history = trend_data.get("price_history", [])
+
+    # Get current price (use latest from history if not provided)
+    if current_price is None and price_history:
+        current_price = price_history[-1].get("avg_price", 0)
+
+    historical_avg = stats.get("mean", current_price)
+    historical_max = stats.get("max", current_price)
+    historical_min = stats.get("min", current_price)
+
+    # Get commodity storage class
+    storage_class = COMMODITY_STORAGE_CLASS.get(commodity, "default")
+    storage_cost = STORAGE_COST_PER_QUINTAL_PER_MONTH.get(storage_class, 50)
+
+    # Get seasonal pattern if available
+    seasonal = SEASONAL_PATTERNS.get(commodity, {})
+    current_month = datetime.now().month
+
+    # Calculate price position (0-100 scale)
+    price_range = historical_max - historical_min
+    if price_range > 0:
+        price_position = ((current_price - historical_min) / price_range) * 100
+    else:
+        price_position = 50
+
+    # Decision factors
+    factors = []
+    sell_score = 50  # Start neutral
+
+    # Factor 1: Current price vs historical average
+    price_vs_avg_pct = ((current_price - historical_avg) / historical_avg * 100) if historical_avg > 0 else 0
+
+    if price_vs_avg_pct > 15:
+        factors.append({
+            "factor": "Price above average",
+            "impact": "positive",
+            "detail": f"Current price is {price_vs_avg_pct:.1f}% above 30-day average",
+        })
+        sell_score += 20
+    elif price_vs_avg_pct > 5:
+        factors.append({
+            "factor": "Price slightly above average",
+            "impact": "neutral",
+            "detail": f"Current price is {price_vs_avg_pct:.1f}% above 30-day average",
+        })
+        sell_score += 10
+    elif price_vs_avg_pct < -15:
+        factors.append({
+            "factor": "Price below average",
+            "impact": "negative",
+            "detail": f"Current price is {abs(price_vs_avg_pct):.1f}% below 30-day average",
+        })
+        sell_score -= 20
+    elif price_vs_avg_pct < -5:
+        factors.append({
+            "factor": "Price slightly below average",
+            "impact": "neutral",
+            "detail": f"Current price is {abs(price_vs_avg_pct):.1f}% below 30-day average",
+        })
+        sell_score -= 10
+
+    # Factor 2: Price trend
+    if trend == "up":
+        factors.append({
+            "factor": "Rising price trend",
+            "impact": "negative",  # negative for selling now
+            "detail": f"Prices have risen {change_pct:.1f}% recently - may continue rising",
+        })
+        sell_score -= 15
+    elif trend == "down":
+        factors.append({
+            "factor": "Falling price trend",
+            "impact": "positive",  # positive for selling now
+            "detail": f"Prices have fallen {abs(change_pct):.1f}% recently - sell before further drop",
+        })
+        sell_score += 15
+
+    # Factor 3: Perishability
+    if storage_class == "perishable":
+        factors.append({
+            "factor": "Highly perishable commodity",
+            "impact": "positive",
+            "detail": "Short shelf life - immediate sale recommended to avoid spoilage",
+        })
+        sell_score += 25
+    elif storage_class == "semi_perishable":
+        factors.append({
+            "factor": "Semi-perishable commodity",
+            "impact": "neutral",
+            "detail": "Can be stored for 1-3 months with proper storage",
+        })
+        sell_score += 10
+
+    # Factor 4: Seasonal patterns
+    if seasonal:
+        peak_months = seasonal.get("peak_months", [])
+        low_months = seasonal.get("low_months", [])
+        expected_rise = seasonal.get("expected_rise_pct", 10)
+
+        if current_month in peak_months:
+            factors.append({
+                "factor": "Peak price season",
+                "impact": "positive",
+                "detail": "Current month is typically a high-price period for this commodity",
+            })
+            sell_score += 20
+        elif current_month in low_months:
+            factors.append({
+                "factor": "Low price season",
+                "impact": "negative",
+                "detail": f"Prices typically rise {expected_rise}% in coming months",
+            })
+            sell_score -= 20
+
+    # Factor 5: Storage cost consideration
+    months_to_peak = 0
+    if seasonal.get("peak_months"):
+        peak_months = seasonal["peak_months"]
+        for m in range(1, 7):  # Look up to 6 months ahead
+            future_month = (current_month + m - 1) % 12 + 1
+            if future_month in peak_months:
+                months_to_peak = m
+                break
+
+    if months_to_peak > 0 and storage_class != "perishable":
+        potential_gain = (seasonal.get("expected_rise_pct", 10) / 100) * current_price
+        storage_total = storage_cost * months_to_peak
+        net_gain = potential_gain - storage_total
+
+        if net_gain > 0:
+            factors.append({
+                "factor": "Storage economics favorable",
+                "impact": "negative",
+                "detail": f"Potential net gain of Rs {net_gain:.0f}/qtl after {months_to_peak} months storage",
+            })
+            sell_score -= 15
+        else:
+            factors.append({
+                "factor": "Storage not economical",
+                "impact": "positive",
+                "detail": f"Storage costs exceed potential price gains",
+            })
+            sell_score += 10
+
+    # Generate recommendation
+    if sell_score >= 70:
+        recommendation = "SELL_NOW"
+        recommendation_text = "Sell immediately"
+        confidence = min(95, sell_score)
+        reasoning = "Current conditions strongly favor immediate sale"
+    elif sell_score >= 55:
+        recommendation = "SELL_SOON"
+        recommendation_text = "Sell within 1-2 weeks"
+        confidence = min(80, sell_score)
+        reasoning = "Conditions moderately favor selling soon"
+    elif sell_score <= 30:
+        recommendation = "STORE"
+        recommendation_text = "Store for better prices"
+        confidence = min(90, 100 - sell_score)
+        reasoning = "Storing the crop may yield better returns"
+    elif sell_score <= 45:
+        recommendation = "WAIT"
+        recommendation_text = "Wait and monitor prices"
+        confidence = min(75, 100 - sell_score)
+        reasoning = "Current prices are not optimal - consider waiting"
+    else:
+        recommendation = "FLEXIBLE"
+        recommendation_text = "Sell partially or wait"
+        confidence = 60
+        reasoning = "Mixed signals - consider selling part of stock"
+
+    # Best time to sell calculation
+    best_time = _calculate_best_selling_window(
+        commodity, current_month, seasonal, storage_class, price_history
+    )
+
+    return {
+        "commodity": commodity,
+        "has_data": True,
+        "current_price": round(current_price, 2) if current_price else None,
+        "historical_avg": round(historical_avg, 2),
+        "historical_max": round(historical_max, 2),
+        "historical_min": round(historical_min, 2),
+        "price_position_percentile": round(price_position, 1),
+        "trend": trend,
+        "trend_change_pct": change_pct,
+        "storage_class": storage_class,
+        "storage_cost_per_month": storage_cost,
+        "recommendation": {
+            "action": recommendation,
+            "text": recommendation_text,
+            "confidence": confidence,
+            "reasoning": reasoning,
+        },
+        "factors": factors,
+        "best_time_to_sell": best_time,
+    }
+
+
+def _calculate_best_selling_window(
+    commodity: str,
+    current_month: int,
+    seasonal: Dict[str, Any],
+    storage_class: str,
+    price_history: List[Dict],
+) -> Dict[str, Any]:
+    """Calculate the best time window to sell the commodity."""
+
+    month_names = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ]
+
+    # Default: sell now for perishables
+    if storage_class == "perishable":
+        return {
+            "window": "Immediate",
+            "start_month": month_names[current_month - 1],
+            "end_month": month_names[current_month - 1],
+            "months_to_wait": 0,
+            "confidence": 85,
+            "reason": "Perishable commodity - sell before quality degrades",
+        }
+
+    # Check seasonal patterns
+    if seasonal:
+        peak_months = seasonal.get("peak_months", [])
+        expected_rise = seasonal.get("expected_rise_pct", 10)
+
+        if current_month in peak_months:
+            return {
+                "window": "Now - Peak Season",
+                "start_month": month_names[current_month - 1],
+                "end_month": month_names[peak_months[-1] - 1],
+                "months_to_wait": 0,
+                "confidence": 80,
+                "reason": "Currently in peak price season - sell within this window",
+            }
+
+        # Find next peak month
+        months_ahead = []
+        for pm in peak_months:
+            diff = pm - current_month
+            if diff <= 0:
+                diff += 12
+            months_ahead.append((pm, diff))
+
+        if months_ahead:
+            months_ahead.sort(key=lambda x: x[1])
+            next_peak, months_to_wait = months_ahead[0]
+            peak_start = peak_months[0]
+            peak_end = peak_months[-1]
+
+            # Adjust for semi-perishables
+            if storage_class == "semi_perishable" and months_to_wait > 3:
+                return {
+                    "window": "Within 1-2 months",
+                    "start_month": month_names[current_month - 1],
+                    "end_month": month_names[(current_month + 1) % 12],
+                    "months_to_wait": 0,
+                    "confidence": 70,
+                    "reason": "Semi-perishable - sell before storage losses exceed gains",
+                }
+
+            return {
+                "window": f"{month_names[peak_start - 1]} - {month_names[peak_end - 1]}",
+                "start_month": month_names[peak_start - 1],
+                "end_month": month_names[peak_end - 1],
+                "months_to_wait": months_to_wait,
+                "expected_price_rise_pct": expected_rise,
+                "confidence": 75,
+                "reason": f"Historical peak season - prices typically {expected_rise}% higher",
+            }
+
+    # Analyze recent price history for trend-based recommendation
+    if len(price_history) >= 5:
+        recent_prices = [p["avg_price"] for p in price_history[-5:]]
+        if all(recent_prices[i] <= recent_prices[i + 1] for i in range(len(recent_prices) - 1)):
+            return {
+                "window": "Wait 2-4 weeks",
+                "start_month": month_names[current_month - 1],
+                "end_month": month_names[(current_month) % 12],
+                "months_to_wait": 1,
+                "confidence": 65,
+                "reason": "Prices showing consistent upward trend",
+            }
+        elif all(recent_prices[i] >= recent_prices[i + 1] for i in range(len(recent_prices) - 1)):
+            return {
+                "window": "Immediate",
+                "start_month": month_names[current_month - 1],
+                "end_month": month_names[current_month - 1],
+                "months_to_wait": 0,
+                "confidence": 70,
+                "reason": "Prices showing consistent downward trend - sell before further drop",
+            }
+
+    # Default recommendation
+    return {
+        "window": "Flexible",
+        "start_month": month_names[current_month - 1],
+        "end_month": month_names[(current_month + 2) % 12],
+        "months_to_wait": 0,
+        "confidence": 50,
+        "reason": "No strong seasonal pattern - monitor market conditions",
+    }

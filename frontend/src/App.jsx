@@ -14,7 +14,8 @@ import useApp from "@hooks/useApp";
 const HomePage = lazy(() => import("@pages/HomePage"));
 const DiseaseDetectionPage = lazy(() => import("@pages/DiseaseDetectionPage"));
 const WeatherPage = lazy(() => import("@pages/WeatherPage"));
-const MandiPricesPage = lazy(() => import("@pages/MandiPricesPage"));
+const APMCPricePage = lazy(() => import("@pages/APMCPricePage"));
+const SchemesPage = lazy(() => import("@pages/SchemesPage"));
 
 /**
  * Suspense fallback shown while lazy-loaded pages are being fetched.
@@ -50,7 +51,8 @@ function AppShell() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/disease" element={<DiseaseDetectionPage />} />
                 <Route path="/weather" element={<WeatherPage />} />
-                <Route path="/mandi" element={<MandiPricesPage />} />
+                <Route path="/apmc" element={<APMCPricePage />} />
+                <Route path="/schemes" element={<SchemesPage />} />
               </Routes>
             </PageTransition>
           </AnimatePresence>

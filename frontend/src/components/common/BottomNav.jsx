@@ -12,12 +12,14 @@ import {
   CameraIcon,
   CloudIcon,
   CurrencyRupeeIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeIconSolid,
   CameraIcon as CameraIconSolid,
   CloudIcon as CloudIconSolid,
   CurrencyRupeeIcon as CurrencyRupeeIconSolid,
+  DocumentTextIcon as DocumentTextIconSolid,
 } from "@heroicons/react/24/solid";
 import { ROUTES } from "@utils/constants";
 
@@ -41,10 +43,16 @@ const NAV_ITEMS = [
     ActiveIcon: CloudIconSolid,
   },
   {
-    label: "Mandi",
-    path: ROUTES.MANDI,
+    label: "APMC",
+    path: ROUTES.APMC,
     Icon: CurrencyRupeeIcon,
     ActiveIcon: CurrencyRupeeIconSolid,
+  },
+  {
+    label: "Schemes",
+    path: ROUTES.SCHEMES,
+    Icon: DocumentTextIcon,
+    ActiveIcon: DocumentTextIconSolid,
   },
 ];
 

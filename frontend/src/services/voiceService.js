@@ -25,7 +25,7 @@ export const INTENTS = {
   NAVIGATE_HOME: "navigate_home",
   NAVIGATE_WEATHER: "navigate_weather",
   NAVIGATE_DISEASE: "navigate_disease",
-  NAVIGATE_MANDI: "navigate_mandi",
+  NAVIGATE_APMC: "navigate_apmc",
   SHOW_HELP: "show_help",
 
   // Advanced queries (Prompt 18)
@@ -34,7 +34,7 @@ export const INTENTS = {
   QUERY_DISEASE_TREATMENT: "query_disease_treatment",
   COMPARE_PRICES: "compare_prices",
   READ_ALERTS: "read_alerts",
-  BEST_MANDI: "best_mandi",
+  BEST_APMC: "best_apmc",
 
   UNKNOWN: "unknown",
 };
@@ -74,14 +74,14 @@ const BASIC_INTENT_PATTERNS = {
     ],
     route: ROUTES.DISEASE_DETECTION,
   },
-  [INTENTS.NAVIGATE_MANDI]: {
+  [INTENTS.NAVIGATE_APMC]: {
     [LANGUAGES.EN]: [
-      "mandi", "prices", "show prices", "market", "market price", "crop price",
+      "apmc", "mandi", "prices", "show prices", "market", "market price", "crop price",
     ],
     [LANGUAGES.HI]: [
-      "भाव", "भाव बताओ", "मंडी", "मंडी भाव", "बाजार भाव", "दाम",
+      "भाव", "भाव बताओ", "मंडी", "मंडी भाव", "बाजार भाव", "दाम", "APMC",
     ],
-    route: ROUTES.MANDI,
+    route: ROUTES.APMC,
   },
   [INTENTS.NAVIGATE_HOME]: {
     [LANGUAGES.EN]: ["home", "go home", "main page", "start"],
@@ -108,7 +108,7 @@ const ADVANCED_INTENT_PATTERNS = {
     [LANGUAGES.HI]: [
       "का भाव", "का दाम", "की कीमत", "भाव बताओ", "भाव दिखाओ",
     ],
-    route: ROUTES.MANDI,
+    route: ROUTES.APMC,
   },
   [INTENTS.QUERY_WEATHER_TIME]: {
     [LANGUAGES.EN]: [
@@ -136,12 +136,12 @@ const ADVANCED_INTENT_PATTERNS = {
   [INTENTS.COMPARE_PRICES]: {
     [LANGUAGES.EN]: [
       "compare prices", "price comparison", "compare .* and",
-      "which mandi", "difference in price",
+      "which apmc", "which mandi", "difference in price",
     ],
     [LANGUAGES.HI]: [
-      "भाव तुलना", "कीमत तुलना", "मंडी तुलना", "किस मंडी में",
+      "भाव तुलना", "कीमत तुलना", "मंडी तुलना", "किस मंडी में", "किस APMC में",
     ],
-    route: ROUTES.MANDI,
+    route: ROUTES.APMC,
   },
   [INTENTS.READ_ALERTS]: {
     [LANGUAGES.EN]: [
@@ -153,16 +153,16 @@ const ADVANCED_INTENT_PATTERNS = {
     ],
     route: ROUTES.WEATHER,
   },
-  [INTENTS.BEST_MANDI]: {
+  [INTENTS.BEST_APMC]: {
     [LANGUAGES.EN]: [
-      "best mandi", "best market", "highest price", "best price",
+      "best apmc", "best mandi", "best market", "highest price", "best price",
       "where to sell", "best place to sell",
     ],
     [LANGUAGES.HI]: [
       "सबसे अच्छी मंडी", "सबसे ज्यादा भाव", "कहाँ बेचें",
-      "बेहतरीन मंडी",
+      "बेहतरीन मंडी", "सबसे अच्छा APMC",
     ],
-    route: ROUTES.MANDI,
+    route: ROUTES.APMC,
   },
 };
 
@@ -179,9 +179,9 @@ const RESPONSES = {
     [LANGUAGES.EN]: "Opening disease detection.",
     [LANGUAGES.HI]: "रोग पहचान खोल रहे हैं।",
   },
-  [INTENTS.NAVIGATE_MANDI]: {
-    [LANGUAGES.EN]: "Opening mandi prices.",
-    [LANGUAGES.HI]: "मंडी भाव दिखा रहे हैं।",
+  [INTENTS.NAVIGATE_APMC]: {
+    [LANGUAGES.EN]: "Opening APMC prices.",
+    [LANGUAGES.HI]: "APMC भाव दिखा रहे हैं।",
   },
   [INTENTS.NAVIGATE_HOME]: {
     [LANGUAGES.EN]: "Going to home page.",
@@ -192,8 +192,8 @@ const RESPONSES = {
     [LANGUAGES.HI]: "यहाँ उपलब्ध कमांड हैं।",
   },
   [INTENTS.QUERY_CROP_PRICE]: {
-    [LANGUAGES.EN]: "Opening mandi prices. You can search for {crop} there.",
-    [LANGUAGES.HI]: "मंडी भाव खोल रहे हैं। वहाँ {crop} खोजें।",
+    [LANGUAGES.EN]: "Opening APMC prices. You can search for {crop} there.",
+    [LANGUAGES.HI]: "APMC भाव खोल रहे हैं। वहाँ {crop} खोजें।",
   },
   [INTENTS.QUERY_WEATHER_TIME]: {
     [LANGUAGES.EN]: "Opening weather forecast. Check {time} forecast.",
@@ -204,16 +204,16 @@ const RESPONSES = {
     [LANGUAGES.HI]: "रोग पहचान खोल रहे हैं। वहाँ {disease} का इलाज देखें।",
   },
   [INTENTS.COMPARE_PRICES]: {
-    [LANGUAGES.EN]: "Opening mandi prices for comparison.",
-    [LANGUAGES.HI]: "तुलना के लिए मंडी भाव खोल रहे हैं।",
+    [LANGUAGES.EN]: "Opening APMC prices for comparison.",
+    [LANGUAGES.HI]: "तुलना के लिए APMC भाव खोल रहे हैं।",
   },
   [INTENTS.READ_ALERTS]: {
     [LANGUAGES.EN]: "Opening weather alerts.",
     [LANGUAGES.HI]: "मौसम अलर्ट दिखा रहे हैं।",
   },
-  [INTENTS.BEST_MANDI]: {
-    [LANGUAGES.EN]: "Opening mandi prices to find the best market.",
-    [LANGUAGES.HI]: "सबसे अच्छी मंडी खोजने के लिए भाव दिखा रहे हैं।",
+  [INTENTS.BEST_APMC]: {
+    [LANGUAGES.EN]: "Opening APMC prices to find the best market.",
+    [LANGUAGES.HI]: "सबसे अच्छा APMC खोजने के लिए भाव दिखा रहे हैं।",
   },
   [INTENTS.UNKNOWN]: {
     [LANGUAGES.EN]: "Sorry, I did not understand that command.",
@@ -276,11 +276,11 @@ export const AVAILABLE_COMMANDS = [
     offline: true,
   },
   {
-    intent: INTENTS.NAVIGATE_MANDI,
-    label: { [LANGUAGES.EN]: "Mandi Prices", [LANGUAGES.HI]: "मंडी भाव" },
+    intent: INTENTS.NAVIGATE_APMC,
+    label: { [LANGUAGES.EN]: "APMC Price", [LANGUAGES.HI]: "APMC भाव" },
     examples: {
-      [LANGUAGES.EN]: ["show prices", "mandi prices", "market price"],
-      [LANGUAGES.HI]: ["भाव बताओ", "मंडी भाव"],
+      [LANGUAGES.EN]: ["show prices", "apmc prices", "market price"],
+      [LANGUAGES.HI]: ["भाव बताओ", "APMC भाव"],
     },
     offline: true,
   },
@@ -351,11 +351,11 @@ export const ADVANCED_COMMANDS = [
     offline: true,
   },
   {
-    intent: INTENTS.BEST_MANDI,
-    label: { [LANGUAGES.EN]: "Best Mandi", [LANGUAGES.HI]: "सबसे अच्छी मंडी" },
+    intent: INTENTS.BEST_APMC,
+    label: { [LANGUAGES.EN]: "Best APMC", [LANGUAGES.HI]: "सबसे अच्छा APMC" },
     examples: {
-      [LANGUAGES.EN]: ["best mandi", "where to sell"],
-      [LANGUAGES.HI]: ["सबसे अच्छी मंडी", "कहाँ बेचें"],
+      [LANGUAGES.EN]: ["best apmc", "where to sell"],
+      [LANGUAGES.HI]: ["सबसे अच्छा APMC", "कहाँ बेचें"],
     },
     offline: true,
   },

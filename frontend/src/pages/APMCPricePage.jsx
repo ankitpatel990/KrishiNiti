@@ -1,19 +1,19 @@
 /**
- * MandiPricesPage - Main page for mandi price comparison and recommendations.
+ * APMCPricePage - Main page for APMC price comparison and recommendations.
  *
  * Orchestrates:
  *  - Commodity search and selection
  *  - State/district filters and sorting
  *  - Price table with best-price highlighting
- *  - Best mandi recommendation card
+ *  - Best APMC recommendation card
  *  - Smart price alerts
  *  - Data export and share (WhatsApp)
  *
  * Data flow:
  *  1. User selects a commodity via CommoditySearch
- *  2. Page fetches prices, best mandi, and trends from backend in parallel
+ *  2. Page fetches prices, best APMC, and trends from backend in parallel
  *  3. FilterPanel + sort are applied client-side to the fetched price list
- *  4. BestMandiCard receives the best mandi from the /best endpoint
+ *  4. BestAPMCCard receives the best APMC from the /best endpoint (first recommendation)
  *  5. PriceAlerts derives insights from the price list
  */
 
@@ -32,21 +32,22 @@ import {
   CommoditySearch,
   FilterPanel,
   PriceTable,
-  BestMandiCard,
+  BestAPMCCard,
   PriceAlerts,
-} from "@components/mandi";
+  SellAdvisory,
+} from "@components/apmc";
 import {
   getCommodities,
   getPrices,
-  getBestMandi,
+  getBestAPMC,
   getTrends,
-} from "@services/mandiApi";
+} from "@services/apmcApi";
 import useApp from "@hooks/useApp";
 import useLocation from "@hooks/useLocation";
 import storage from "@utils/storage";
 import { formatPricePerQuintal, formatDate } from "@utils/helpers";
 
-const CACHE_KEY_PREFIX = "farmhelp_mandi_";
+const CACHE_KEY_PREFIX = "farmhelp_apmc_";
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const INITIAL_FILTERS = {
@@ -55,7 +56,7 @@ const INITIAL_FILTERS = {
   sort: "price_desc",
 };
 
-function MandiPricesPage() {
+function APMCPricePage() {
   const { language } = useApp();
   const { location } = useLocation();
 
@@ -63,7 +64,7 @@ function MandiPricesPage() {
   const [commodities, setCommodities] = useState([]);
   const [selectedCommodity, setSelectedCommodity] = useState("");
   const [prices, setPrices] = useState([]);
-  const [bestMandi, setBestMandi] = useState(null);
+  const [bestAPMC, setBestAPMC] = useState(null);
   const [trends, setTrends] = useState(null);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
@@ -128,14 +129,14 @@ function MandiPricesPage() {
           if (cached && cached._ts && Date.now() - cached._ts < CACHE_TTL_MS) {
             if (currentRequestId !== requestIdRef.current) return;
             setPrices(cached.prices || []);
-            setBestMandi(cached.bestMandi || null);
+            setBestAPMC(cached.bestAPMC || null);
             setTrends(cached.trends || null);
             setLoading(false);
             return;
           }
         }
 
-        // Build location params for best mandi
+        // Build location params for best APMC
         const locationParams = {};
         if (location?.coordinates) {
           locationParams.latitude = location.coordinates.lat;
@@ -145,7 +146,7 @@ function MandiPricesPage() {
         // Parallel API calls
         const [pricesRes, bestRes, trendsRes] = await Promise.allSettled([
           getPrices({ commodity, limit: 100 }),
-          getBestMandi(commodity, locationParams),
+          getBestAPMC(commodity, locationParams),
           getTrends(commodity, { days: 7 }),
         ]);
 
@@ -153,25 +154,47 @@ function MandiPricesPage() {
 
         const pricesData =
           pricesRes.status === "fulfilled" ? pricesRes.value.prices || [] : [];
-        const bestData =
-          bestRes.status === "fulfilled" ? bestRes.value.best_mandi || bestRes.value : null;
+        
+        // Extract best APMC from recommendations array (first item is the best)
+        let bestData = null;
+        if (bestRes.status === "fulfilled" && bestRes.value) {
+          const recommendations = bestRes.value.recommendations || [];
+          if (recommendations.length > 0) {
+            // Map backend field names to component expected names
+            const rec = recommendations[0];
+            bestData = {
+              mandi_name: rec.mandi_name,
+              state: rec.state,
+              district: rec.district,
+              price_per_quintal: rec.latest_price || rec.price_per_quintal,
+              min_price: rec.min_price,
+              max_price: rec.max_price,
+              modal_price: rec.modal_price,
+              net_price_per_quintal: rec.net_price_per_quintal,
+              transport_cost_per_quintal: rec.transport_cost_per_quintal,
+              distance_km: rec.distance_km,
+              arrival_date: rec.arrival_date,
+            };
+          }
+        }
+        
         const trendsData =
           trendsRes.status === "fulfilled" ? trendsRes.value : null;
 
         setPrices(pricesData);
-        setBestMandi(bestData);
+        setBestAPMC(bestData);
         setTrends(trendsData);
 
         // Cache
         storage.set(cacheKey, {
           prices: pricesData,
-          bestMandi: bestData,
+          bestAPMC: bestData,
           trends: trendsData,
           _ts: Date.now(),
         });
       } catch (err) {
         if (currentRequestId !== requestIdRef.current) return;
-        setError(err.message || "Failed to fetch mandi prices");
+        setError(err.message || "Failed to fetch APMC prices");
       } finally {
         if (currentRequestId === requestIdRef.current) {
           setLoading(false);
@@ -215,7 +238,7 @@ function MandiPricesPage() {
         result.sort((a, b) => (b.price_per_quintal || 0) - (a.price_per_quintal || 0));
         break;
       case "name_asc":
-        result.sort((a, b) => (a.mandi_name || "").localeCompare(b.mandi_name || ""));
+        result.sort((a, b) => (a.mandi_name || "").localeCompare(b.mandi_name || "")); // mandi_name is the field from API
         break;
       case "date_desc":
         result.sort((a, b) => {
@@ -231,7 +254,7 @@ function MandiPricesPage() {
     return result;
   }, [prices, filters]);
 
-  // Price statistics for BestMandiCard
+  // Price statistics for BestAPMCCard
   const priceStats = useMemo(() => {
     const allPrices = prices.map((p) => p.price_per_quintal).filter(Boolean);
     if (allPrices.length === 0) return { avg: 0, min: 0, max: 0 };
@@ -247,7 +270,7 @@ function MandiPricesPage() {
     if (filteredPrices.length === 0) return;
 
     const headers = [
-      "Mandi",
+      "APMC",
       "State",
       "District",
       "Price/Quintal",
@@ -257,7 +280,7 @@ function MandiPricesPage() {
       "Date",
     ];
     const rows = filteredPrices.map((p) => [
-      p.mandi_name,
+      p.mandi_name, // Field name from API
       p.state,
       p.district,
       p.price_per_quintal,
@@ -273,7 +296,7 @@ function MandiPricesPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `mandi_prices_${selectedCommodity}_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `apmc_prices_${selectedCommodity}_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   }, [filteredPrices, selectedCommodity]);
@@ -283,15 +306,15 @@ function MandiPricesPage() {
     if (!selectedCommodity || filteredPrices.length === 0) return;
 
     const best = filteredPrices[0];
-    let text = `*${selectedCommodity} Mandi Prices*\n\n`;
+    let text = `*${selectedCommodity} APMC Prices*\n\n`;
     text += `Best Price: ${formatPricePerQuintal(best.price_per_quintal)} at ${best.mandi_name}\n`;
-    text += `Total Mandis: ${filteredPrices.length}\n\n`;
+    text += `Total APMCs: ${filteredPrices.length}\n\n`;
 
     const top3 = filteredPrices
       .slice(0, 3)
       .map((p) => `- ${p.mandi_name}: ${formatPricePerQuintal(p.price_per_quintal)}`)
       .join("\n");
-    text += `Top Mandis:\n${top3}\n\n`;
+    text += `Top APMCs:\n${top3}\n\n`;
     text += `_via FarmHelp App_`;
 
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -306,13 +329,13 @@ function MandiPricesPage() {
           <div className="flex items-center gap-2 mb-1">
             <BuildingStorefrontIcon className="h-6 w-6 text-secondary-600" />
             <h1 className="text-2xl font-display font-bold text-neutral-900">
-              {language === "hi" ? "मंडी भाव" : "Mandi Prices"}
+              {language === "hi" ? "APMC भाव" : "APMC Price"}
             </h1>
           </div>
           <p className="text-sm text-neutral-600">
             {language === "hi"
-              ? "अपनी फसल के लिए सबसे अच्छा मंडी खोजें"
-              : "Compare prices and find the best mandi for your crop"}
+              ? "अपनी फसल के लिए सबसे अच्छा APMC खोजें"
+              : "Compare prices and find the best APMC for your crop"}
           </p>
         </div>
 
@@ -385,10 +408,10 @@ function MandiPricesPage() {
           {/* Summary stats */}
           <SummaryStats prices={prices} commodity={selectedCommodity} />
 
-          {/* Best mandi + alerts row */}
+          {/* Best APMC + alerts row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <BestMandiCard
-              bestMandi={bestMandi}
+            <BestAPMCCard
+              bestAPMC={bestAPMC}
               averagePrice={priceStats.avg}
               worstPrice={priceStats.min}
               className="lg:col-span-2"
@@ -399,6 +422,12 @@ function MandiPricesPage() {
               className="lg:col-span-1"
             />
           </div>
+
+          {/* Sell Advisory - Storage vs Immediate Sell Recommendation */}
+          <SellAdvisory
+            commodity={selectedCommodity}
+            state={filters.state || null}
+          />
 
           {/* Filters */}
           <FilterPanel
@@ -413,7 +442,7 @@ function MandiPricesPage() {
           {/* Price table */}
           <PriceTable
             prices={filteredPrices}
-            bestMandiName={bestMandi?.mandi_name || ""}
+            bestAPMCName={bestAPMC?.mandi_name || ""}
           />
         </>
       )}
@@ -439,7 +468,7 @@ function MandiPricesPage() {
 }
 
 /**
- * SummaryStats - Horizontal stat cards for avg, min, max, and mandi count.
+ * SummaryStats - Horizontal stat cards for avg, min, max, and APMC count.
  */
 function SummaryStats({ prices, commodity }) {
   const stats = useMemo(() => {
@@ -472,7 +501,7 @@ function SummaryStats({ prices, commodity }) {
       color: "text-danger-600",
     },
     {
-      label: "Total Mandis",
+      label: "Total APMCs",
       value: String(stats.count),
       color: "text-accent-700",
     },
@@ -568,13 +597,13 @@ function TrendsSummary({ trends, commodity }) {
         {/* Stats row */}
         <div className="flex items-center justify-between mt-3 text-xs text-neutral-500">
           <span>
-            Avg: {formatPricePerQuintal(statistics.average || statistics.avg_price)}
+            Avg: {formatPricePerQuintal(statistics.mean || statistics.average || statistics.avg_price)}
           </span>
           {statistics.std_dev != null && (
             <span>Std Dev: Rs {Math.round(statistics.std_dev)}</span>
           )}
-          {statistics.data_points != null && (
-            <span>{statistics.data_points} data points</span>
+          {(statistics.count != null || statistics.data_points != null) && (
+            <span>{statistics.count || statistics.data_points} data points</span>
           )}
         </div>
       </div>
@@ -587,4 +616,4 @@ TrendsSummary.propTypes = {
   commodity: PropTypes.string,
 };
 
-export default MandiPricesPage;
+export default APMCPricePage;

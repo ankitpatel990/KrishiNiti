@@ -13,6 +13,7 @@ import {
   CameraIcon,
   CloudIcon,
   CurrencyRupeeIcon,
+  DocumentTextIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
@@ -22,7 +23,8 @@ const NAV_ITEMS = [
   { label: "Home", path: ROUTES.HOME, Icon: HomeIcon },
   { label: "Disease Detection", path: ROUTES.DISEASE_DETECTION, Icon: CameraIcon },
   { label: "Weather", path: ROUTES.WEATHER, Icon: CloudIcon },
-  { label: "Mandi Prices", path: ROUTES.MANDI, Icon: CurrencyRupeeIcon },
+  { label: "APMC Price", path: ROUTES.APMC, Icon: CurrencyRupeeIcon },
+  { label: "Schemes", path: ROUTES.SCHEMES, Icon: DocumentTextIcon },
 ];
 
 function Sidebar({

@@ -2,7 +2,8 @@
  * Disease API service.
  *
  * Connects to backend /api/v1/disease endpoints:
- * - Treatment by name, list, detect (simulated), get by ID.
+ * - Treatment by name, list, detect (AI image), get by ID,
+ *   supported crops, model status.
  */
 
 import api, { API_V1 } from "./api";
@@ -25,13 +26,44 @@ export async function getTreatment(diseaseName, options = {}) {
 }
 
 /**
- * Simulated disease detection by crop type.
- * @param {string} cropType - Crop type (e.g. Paddy, Wheat)
+ * AI disease detection from an uploaded image.
+ *
+ * @param {File} imageFile  - Image file (JPEG, PNG, WebP).
+ * @param {string} cropType - User-selected crop type.
+ * @returns {Promise<Object>} Response with predictions array.
+ */
+export async function detectDiseaseWithImage(imageFile, cropType) {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+
+  const params = new URLSearchParams({ crop_type: cropType });
+
+  const { data } = await api.post(
+    `${BASE}/detect?${params.toString()}`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 120_000,
+    },
+  );
+  return data;
+}
+
+/**
+ * Get the list of crops supported by AI detection models.
+ * @returns {Promise<{ crops: Array<{ value: string, label: string, model: string }> }>}
+ */
+export async function getSupportedCrops() {
+  const { data } = await api.get(`${BASE}/supported-crops`);
+  return data;
+}
+
+/**
+ * Get AI model loading status.
  * @returns {Promise<Object>}
  */
-export async function detectDisease(cropType) {
-  const params = new URLSearchParams({ crop_type: cropType });
-  const { data } = await api.post(`${BASE}/detect?${params.toString()}`);
+export async function getModelStatus() {
+  const { data } = await api.get(`${BASE}/model-status`);
   return data;
 }
 

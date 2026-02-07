@@ -4,7 +4,7 @@
  * Features:
  *  - Searchable dropdown for commodity selection
  *  - Recent searches stored in localStorage (up to 5)
- *  - Popular commodities quick-select chips
+ *  - Popular commodities quick-select chips with emojis
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -12,13 +12,67 @@ import PropTypes from "prop-types";
 import {
   MagnifyingGlassIcon,
   ClockIcon,
-  XMarkIcon,
-  TagIcon,
 } from "@heroicons/react/24/outline";
 import storage from "@utils/storage";
 
 const RECENT_KEY = "farmhelp_recent_commodities";
 const MAX_RECENT = 5;
+
+// Commodity emojis mapping
+const COMMODITY_EMOJIS = {
+  Wheat: "\uD83C\uDF3E",
+  Rice: "\uD83C\uDF5A",
+  Paddy: "\uD83C\uDF3E",
+  Cotton: "\uD83E\uDDF6",
+  Onion: "\uD83E\uDDC5",
+  Potato: "\uD83E\uDD54",
+  Tomato: "\uD83C\uDF45",
+  Sugarcane: "\uD83C\uDF31",
+  Soybean: "\uD83C\uDF31",
+  Maize: "\uD83C\uDF3D",
+  Corn: "\uD83C\uDF3D",
+  Groundnut: "\uD83E\uDD5C",
+  Chilli: "\uD83C\uDF36\uFE0F",
+  Banana: "\uD83C\uDF4C",
+  Apple: "\uD83C\uDF4E",
+  Mango: "\uD83E\uDD6D",
+  Grapes: "\uD83C\uDF47",
+  Orange: "\uD83C\uDF4A",
+  Cabbage: "\uD83E\uDD6C",
+  Carrot: "\uD83E\uDD55",
+  Cauliflower: "\uD83E\uDD66",
+  Garlic: "\uD83E\uDDC4",
+  Ginger: "\uD83E\uDED0",
+  Lemon: "\uD83C\uDF4B",
+  Peas: "\uD83E\uDED1",
+  Brinjal: "\uD83C\uDF46",
+  Cucumber: "\uD83E\uDD52",
+  Spinach: "\uD83E\uDD6C",
+  Mustard: "\uD83C\uDF3B",
+  Bajra: "\uD83C\uDF3E",
+  Jowar: "\uD83C\uDF3E",
+  Barley: "\uD83C\uDF3E",
+  Pulses: "\uD83E\uDED8",
+  Oilseeds: "\uD83C\uDF3B",
+  Millets: "\uD83C\uDF3E",
+  Cumin: "\uD83E\uDED2",
+  Coriander: "\uD83C\uDF3F",
+  Turmeric: "\uD83D\uDFE1",
+  Coconut: "\uD83E\uDD65",
+  Arecanut: "\uD83C\uDF30",
+  Cashew: "\uD83C\uDF30",
+  Coffee: "\u2615",
+  Tea: "\uD83C\uDF75",
+  Pepper: "\uD83C\uDF36\uFE0F",
+  Cardamom: "\uD83C\uDF3F",
+  Jute: "\uD83E\uDDF6",
+  Tobacco: "\uD83C\uDF43",
+};
+
+// Get emoji for a commodity (with fallback)
+function getCommodityEmoji(commodity) {
+  return COMMODITY_EMOJIS[commodity] || "\uD83C\uDF3F";
+}
 
 const POPULAR_COMMODITIES = [
   "Wheat",
@@ -144,7 +198,8 @@ function CommoditySearch({
           />
           {value && (
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
+              <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded flex items-center gap-1">
+                <span role="img" aria-hidden="true">{getCommodityEmoji(value)}</span>
                 {value}
               </span>
             </div>
@@ -175,7 +230,9 @@ function CommoditySearch({
                             : "text-neutral-700",
                         ].join(" ")}
                       >
-                        <ClockIcon className="h-3.5 w-3.5 text-neutral-400" />
+                        <span className="text-base" role="img" aria-hidden="true">
+                          {getCommodityEmoji(c)}
+                        </span>
                         {c}
                       </button>
                     </li>
@@ -204,7 +261,9 @@ function CommoditySearch({
                         : "text-neutral-700",
                     ].join(" ")}
                   >
-                    <TagIcon className="h-3.5 w-3.5 text-neutral-400" />
+                    <span className="text-base" role="img" aria-hidden="true">
+                      {getCommodityEmoji(name)}
+                    </span>
                     {name}
                   </button>
                 </li>
@@ -214,7 +273,7 @@ function CommoditySearch({
         )}
       </div>
 
-      {/* Popular commodities quick-select */}
+      {/* Popular commodities quick-select with emojis */}
       <div>
         <p className="text-xs font-medium text-neutral-500 mb-1.5">
           Popular Commodities
@@ -228,13 +287,16 @@ function CommoditySearch({
               disabled={loading}
               className={[
                 "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                "border",
+                "border flex items-center gap-1.5",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 commodity === value
                   ? "bg-secondary-100 border-secondary-300 text-secondary-800"
                   : "bg-white border-neutral-200 text-neutral-600 hover:bg-secondary-50 hover:border-secondary-300 hover:text-secondary-700",
               ].join(" ")}
             >
+              <span className="text-sm" role="img" aria-hidden="true">
+                {getCommodityEmoji(commodity)}
+              </span>
               {commodity}
             </button>
           ))}
